@@ -1,0 +1,48 @@
+/*
+ * gpu_jpeg2k.h
+ *
+ *  Created on: Feb 2, 2012
+ *      Author: miloszc
+ */
+
+#include "misc/memory.h"
+
+#ifndef GPU_JPEG2K_H_
+#define GPU_JPEG2K_H_
+
+#define UNSIGNED 0U
+#define SIGNED 1U
+
+typedef struct {
+	/** Image width */
+	uint16_t img_w;
+	/** Image height */
+	uint16_t img_h;
+	/** Tile width. Default 0 */
+	uint16_t tile_w;
+	/** Tile height. Default 0 */
+	uint16_t tile_h;
+	/** Number of image channels/components */
+	uint16_t num_comp;
+	/** Image bit depth. XXX: Should be separate for every component */
+	uint16_t depth;
+	/** Image data sign. UNSIGNED or SIGNED*/
+	uint8_t sign;
+	/** Type of wavelet transform: lossless DWT_53, lossy DWT_97. */
+	uint8_t wavelet_type;
+	/** Number of decomposition levels. Range: 1-5*/
+	uint8_t num_dlvls;
+	/** Transform image to YUV */
+	uint8_t use_mct;
+	/** Target image size in bytes. Default 0 */
+	uint32_t target_size;
+
+	mem_mg_t *mem_mg;
+} Config;
+
+typedef struct {
+	size_t length;
+	void *data;
+} Chunk;
+
+#endif /* GPU_JPEG2K_H_ */
