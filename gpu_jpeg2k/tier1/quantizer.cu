@@ -149,8 +149,9 @@ type_subband *quantization(type_subband *sb)
 //		println_var(INFO, "Lossless mag_bits:%d convert_factor:%f shift_bits:%d subband_gain:%d", sb->mag_bits, sb->convert_factor, shift_bits, get_exp_subband_gain(sb->orient));
 	}
 //	println_var(INFO, "%d %d %d %d %d %d", sb->width, sb->num_cblks, sb->num_xcblks, sb->num_ycblks, tile_comp->cblk_w, tile_comp->cblk_h);
+	mem_mg_t *mem_mg = img->mem_mg;
 	/* Allocate aligned memory for linear codeblocks data */
-	cuda_d_allocate_mem((void **) &(sb->cblks_data_d), sb->num_cblks * tile_comp->cblk_w * tile_comp->cblk_h * sizeof(int));
+	sb->cblks_data_d = (int32_t *)mem_mg->alloc->dev(sb->num_cblks * tile_comp->cblk_w * tile_comp->cblk_h * sizeof(int32_t), mem_mg->ctx);
 
 	/* Input and output data */
 	type_data *idata = tile_comp->img_data_d + sb->tlx + sb->tly * tile_comp->width;

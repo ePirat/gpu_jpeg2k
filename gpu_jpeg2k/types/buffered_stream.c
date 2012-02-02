@@ -19,7 +19,8 @@
 void init_buffer(type_buffer *buffer)
 {
 //	println_start(INFO);
-	buffer->data = (uint8_t*) malloc(INIT_BUF_SIZE);
+	mem_mg_t *mem_mg = buffer->mem_mg;
+	buffer->data = (uint8_t*)mem_mg->alloc->host(INIT_BUF_SIZE, mem_mg->ctx);
 	buffer->byte = 0;
 	buffer->bytes_count = 0;
 	buffer->bits_count = 0;
@@ -141,12 +142,14 @@ uint32_t inalign(type_buffer *buffer)
 void enlarge_buffer_n(type_buffer *buffer, int size)
 {
 	uint8_t *old_data = buffer->data;
+	mem_mg_t *mem_mg = buffer->mem_mg;
 	/* Enlarge buffer to new_size */
 	uint32_t new_size = size;
-	buffer->data = (uint8_t*)malloc(new_size);
+	buffer->data = (uint8_t*)mem_mg->alloc->host(new_size, mem_mg->ctx);
 	memcpy(buffer->data, old_data, buffer->size);
 	buffer->size = new_size;
-	free(old_data);
+//	free(old_data);
+	mem_mg->dealloc->host(old_data, mem_mg->ctx);
 }
 
 /**

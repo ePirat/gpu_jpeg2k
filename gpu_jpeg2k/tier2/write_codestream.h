@@ -10,6 +10,6 @@
 
 #include "../types/image_types.h"
 
-void write_codestream(type_image *img);
+Chunk **write_codestream(type_image *img);
 
 #endif /* WRITE_CODESTREAM_H_ */

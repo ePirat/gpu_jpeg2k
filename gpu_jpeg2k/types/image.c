@@ -67,11 +67,11 @@ void init_codeblocks(type_subband *sb) {
 	//	println_start(INFO);
 	uint32_t i;
 	type_codeblock *cblk;
-	type_tile_comp *tile_comp;
+	type_tile_comp *tile_comp = sb->parent_res_lvl->parent_tile_comp;
+	type_image *img = tile_comp->parent_tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 
-	sb->cblks = (type_codeblock *) malloc(sb->num_cblks * sizeof(type_codeblock));
-
-	tile_comp = sb->parent_res_lvl->parent_tile_comp;
+	sb->cblks = (type_codeblock *)mem_mg->alloc->host(sb->num_cblks * sizeof(type_codeblock), mem_mg->ctx);
 
 	//	println_var(INFO, "sb:tlx:%d tly:%d brx:%d bry:%d w:%d h:%d num_xcblks:%d num_ycblks:%d num_cblks:%d", sb->tlx, sb->tly, sb->brx, sb->bry, sb->width, sb->height, sb->num_xcblks, sb->num_ycblks, sb->num_cblks);
 
@@ -110,16 +110,15 @@ void init_subbands(type_res_lvl *res_lvl) {
 	uint8_t i;
 	type_subband *sb;
 	//	type_subband *sb_ll;
-	type_tile *tile;
-	type_tile_comp *tile_comp;
+	type_tile_comp *tile_comp = res_lvl->parent_tile_comp;
+	type_tile *tile = tile_comp->parent_tile;
+	type_image *img = tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 	uint8_t xob, yob;
 	uint16_t tmp_x, tmp_y;
 	uint16_t sb_ll_width, sb_ll_height;
 
-	res_lvl->subbands = (type_subband *) malloc(res_lvl->num_subbands * sizeof(type_subband));
-
-	tile_comp = res_lvl->parent_tile_comp;
-	tile = tile_comp->parent_tile;
+	res_lvl->subbands = (type_subband *)mem_mg->alloc->host(res_lvl->num_subbands * sizeof(type_subband), mem_mg->ctx);
 
 	sb_ll_width = ((tile->width + (1 << res_lvl->dec_lvl_no) - 1) >> res_lvl->dec_lvl_no);
 	sb_ll_height = ((tile->height + (1 << res_lvl->dec_lvl_no) - 1) >> res_lvl->dec_lvl_no);
@@ -177,14 +176,15 @@ void init_resolution_lvls(type_tile_comp *tile_comp) {
 	//	println_start(INFO);
 	uint8_t i;
 	type_res_lvl *res_lvl;
-	type_tile *parent_tile;
+	type_tile *parent_tile = tile_comp->parent_tile;
+	type_image *img = parent_tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 	/* n = 2^(Nl-r) */
 	uint16_t n;
 	/* Precinct width and height */
 	int prec_width, prec_height;
-	tile_comp->res_lvls = (type_res_lvl *) malloc(tile_comp->num_rlvls * sizeof(type_res_lvl));
 
-	parent_tile = tile_comp->parent_tile;
+	tile_comp->res_lvls = (type_res_lvl *)mem_mg->alloc->host(tile_comp->num_rlvls * sizeof(type_res_lvl), mem_mg->ctx);
 
 	//	println_var(INFO, "w:%d h:%d num_dlvls:%d num_rlvls:%d cblk_exp_w:%d cblk_exp_h:%d cblk_w:%d cblk_h:%d", tile_comp->width, tile_comp->height, tile_comp->num_dlvls, tile_comp->num_rlvls, tile_comp->cblk_exp_w, tile_comp->cblk_exp_h, tile_comp->cblk_w, tile_comp->cblk_h);
 
@@ -238,11 +238,9 @@ void init_resolution_lvls(type_tile_comp *tile_comp) {
 void init_tile_comps(type_tile *tile) {
 	uint16_t i;
 	type_tile_comp *tile_comp;
-	type_image *parent_img;
-	mem_mg_t *mem_mg;
+	type_image *parent_img = tile->parent_img;
+	mem_mg_t *mem_mg = parent_img->mem_mg;
 
-	parent_img = tile->parent_img;
-	mem_mg = parent_img->mem_mg;
 	tile->tile_comp = (type_tile_comp *) mem_mg->alloc->host(parent_img->num_components * sizeof(type_tile_comp), mem_mg->ctx);
 
 	//	println_var(INFO, "no:%d tlx:%d tly:%d brx:%d bry:%d w:%d h:%d", tile->tile_no, tile->tlx, tile->tly, tile->brx, tile->bry, tile->width, tile->height);
@@ -268,11 +266,6 @@ void init_tile_comps(type_tile *tile) {
 		tile_comp->cblk_h = 1 << tile_comp->cblk_exp_h;
 		//printf("tile w:%d h:%d\n", tile_comp->width, tile_comp->height);
 		tile_comp->parent_tile = tile;
-
-		cuda_h_allocate_mem((void **) &(tile_comp->img_data), tile_comp->width * tile_comp->height * sizeof(type_data));
-		//		tile_comp->img_data = (type_data *) malloc(tile_comp->width * tile_comp->height * sizeof(type_data));
-		cuda_d_allocate_mem((void **) &(tile_comp->img_data_d),
-				tile_comp->width * tile_comp->height * sizeof(type_data));
 
 		init_resolution_lvls(tile_comp);
 	}
@@ -302,7 +295,8 @@ void init_tiles(type_image **_img) {
 	img->num_tiles = img->num_xtiles * img->num_ytiles;
 
 	//	cuda_h_allocate_mem((void **) &(img->tile), img->num_tiles * sizeof(type_tile));
-	img->tile = (type_tile *) img->mem_mg->alloc->host(img->num_tiles * sizeof(type_tile), img->mem_mg->ctx);
+	mem_mg_t *mem_mg = img->mem_mg;
+	img->tile = (type_tile *) mem_mg->alloc->host(img->num_tiles * sizeof(type_tile), mem_mg->ctx);
 
 	//	println_var(INFO, "w:%d h:%d no_com:%d area:%d t_w:%d t_h:%d t_x:%d t_y:%d no_t:%d", img->width,img->height,img->num_components,img->area_alloc,img->tile_w,img->tile_h,img->num_xtiles,img->num_ytiles,img->num_tiles);
 

@@ -23,6 +23,7 @@ struct type_buffer {
 	unsigned char *bp;
 	unsigned char *start;
 	unsigned char *end;
+	mem_mg_t *mem_mg;
 };
 
 void init_buffer(type_buffer *buffer);

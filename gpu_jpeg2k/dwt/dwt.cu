@@ -12,7 +12,6 @@ extern "C" {
 	#include "dwt.h"
 	#include "../print_info/print_info.h"
 	#include "../misc/memory_management.cuh"
-//	#include "../preprocessing/show_image.h"
 	#include "kernel.h"
 }
 
@@ -20,21 +19,15 @@ extern "C" {
 
 void fwt(type_tile *tile)
 {
-//	println_start(INFO);
 	int i;
 	type_tile_comp *tile_comp;
 	type_image *img = tile->parent_img;
-
-//	save_img(img, "enc_dwt_before.bmp");
 
 	/* Process components from tile */
 	for(i = 0; i < tile->parent_img->num_components; i++)
 	{
 		tile_comp = &(tile->tile_comp[i]);
 
-//		printf("Next tile\n");
-
-//		save_tile_comp_no_dbg(tile_comp, i);
 		/* Do FWT on image data. Lossy. */
 		if(img->wavelet_type)
 		{
@@ -43,29 +36,7 @@ void fwt(type_tile *tile)
 		{
 			tile_comp->img_data_d = fwt_2d(DWT53, tile_comp);
 		}
-
-		/*if(i == 0)
-		{
-			int size = tile->width * tile->height * sizeof(type_data);
-			type_data *buff = (type_data*)malloc(size);
-
-			cuda_memcpy_dth(tile_comp->img_data_d, buff, size);
-
-			int x, y;
-			for(y = 0; y < img->height; y++)
-			{
-				for(x = 0; x < img->width; x++)
-				{
-						printf("%6d,", (int)buff[x + y * img->width]);
-				}
-				printf("\n");
-			}
-		}*/
-
-//		save_tile_comp_no_dbg(tile_comp, i+1);
 	}
-//	save_img(img, "enc_dwt_after.bmp");
-//	println_end(INFO);
 }
 
 //#define TEST

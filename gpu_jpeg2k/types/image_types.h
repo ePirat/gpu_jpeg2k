@@ -412,6 +412,15 @@ struct type_image
 	/** Was the MCT used? */
 	uint8_t use_mct;
 
+	/** Max number of iterations of Gram-Schmidt algorithm */
+	uint32_t mct_klt_iterations;
+
+	/** Error sufficient for Gram-Schmit algorithm to end iteration */
+	float mct_klt_err;
+
+	/** Cut-off for dumping components */
+	float mct_klt_border_eigenvalue;
+
 	/** Was MCT as in 15444-2 standard */
 	uint8_t use_part2_mct;
 

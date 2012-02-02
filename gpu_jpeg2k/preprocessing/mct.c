@@ -9,7 +9,7 @@
 #include "../types/image_types.h"
 #include "../klt/klt.h"
 
-void mct(type_image *img, type_parameters *param) {
+void mct(type_image *img) {
 	/* Multicomponent transform and DC */
 	if(img->use_mct == 1)
 	{
@@ -27,10 +27,10 @@ void mct(type_image *img, type_parameters *param) {
 		if(img->mct_compression_method == 0)
 		{
 			img->mct_data = (type_multiple_component_transformations*)calloc(1, sizeof(type_multiple_component_transformations));
-			encode_klt(param, img);
+			encode_klt(img);
 		} else if((img->mct_compression_method == 2))
 		{
-//			fwt_1d(img, 4);
+			fwt_1d(img, 4);
 		}
 
 	} else {

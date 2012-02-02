@@ -20,7 +20,7 @@ extern "C" {
 //#define MCT_FREEUP_COMPONENTS // now i know it is part of larger block and it is advised not to free this memory at this point xP
 #define PART_TIME
 
-void encode_klt(type_parameters *param, type_image *img) {
+void encode_klt(type_image *img) {
 //	checkCUDAError("before MCT");
 	long int start_klt;
 	start_klt = start_measure();
@@ -107,7 +107,7 @@ void encode_klt(type_parameters *param, type_image *img) {
    
 	clock_t gs_start = clock();
 #ifdef MCT_CALC_GS
-	gram_schmidt(img->num_components, output, covMatrix_d, eValues, param->param_mct_klt_iterations, param->param_mct_klt_err);
+	gram_schmidt(img->num_components, output, covMatrix_d, eValues, img->mct_klt_iterations, img->mct_klt_err);
 #endif
 	//println_var(INFO, "Time of GS %f", ((double)clock() - gs_start)/ CLOCKS_PER_SEC);
 	
@@ -131,7 +131,7 @@ void encode_klt(type_parameters *param, type_image *img) {
 	}
 	i = img->num_components - 1;
 	odciecie = 0;
-	while(eValues[i] <= param->param_mct_klt_border_eigenvalue) {
+	while(eValues[i] <= img->mct_klt_border_eigenvalue) {
 		++odciecie;
 		--i;
 		if(i==0)

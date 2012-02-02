@@ -71,6 +71,7 @@ void read_siz_marker(type_buffer *buffer, type_image *img)
 	int length, i;
 	int marker;
 	int rsiz;
+	mem_mg_t *mem_mg = buffer->mem_mg;
 
 	/* Read SIZ marker */
 	marker = read_buffer(buffer, 2);
@@ -81,7 +82,7 @@ void read_siz_marker(type_buffer *buffer, type_image *img)
 	}
 
 	/* Allocate coding parameters */
-	img->coding_param = (type_coding_param *) malloc(sizeof(type_coding_param));
+	img->coding_param = (type_coding_param *)mem_mg->alloc->host(sizeof(type_coding_param), mem_mg->ctx);
 
 	/* Lsiz */
 	length = read_buffer(buffer, 2);
@@ -184,7 +185,8 @@ void write_cod_marker(type_buffer *buffer, type_image *img)
 void read_cod_marker(type_buffer *buffer, type_image *img)
 {
 	int length, pos, i;
-	type_parameters *param = (type_parameters *)malloc(sizeof(type_parameters));
+	mem_mg_t *mem_mg = buffer->mem_mg;
+	type_parameters *param = (type_parameters *)mem_mg->alloc->host(sizeof(type_parameters), mem_mg->ctx);
 	int marker;
 
 	/* Read COD marker */
@@ -521,14 +523,14 @@ type_packet *prepare_packet(type_subband *sb)
 	int i;
 	type_packet *packet;
 	type_codeblock *cblk;
+	mem_mg_t *mem_mg = sb->parent_res_lvl->parent_tile_comp->parent_tile->parent_img->mem_mg;
+	packet = (type_packet *)mem_mg->alloc->host(sizeof(type_packet), mem_mg->ctx);
 
-	packet = (type_packet *) malloc(sizeof(type_packet));
-
-	packet->inclusion = (uint16_t *) malloc(sizeof(uint16_t) * sb->num_cblks);
+	packet->inclusion = (uint16_t *)mem_mg->alloc->host(sizeof(uint16_t) * sb->num_cblks, mem_mg->ctx);
 	/* We use only one layer, so every code-block includes image data to first packet */
 	memset(packet->inclusion, 0, sizeof(uint16_t) * sb->num_cblks);
-	packet->zero_bit_plane = (uint16_t *) malloc(sizeof(uint16_t) * sb->num_cblks);
-	packet->num_coding_passes = (uint16_t *) malloc(sizeof(uint16_t) * sb->num_cblks);
+	packet->zero_bit_plane = (uint16_t *)mem_mg->alloc->host(sizeof(uint16_t) * sb->num_cblks, mem_mg->ctx);
+	packet->num_coding_passes = (uint16_t *)mem_mg->alloc->host(sizeof(uint16_t) * sb->num_cblks, mem_mg->ctx);
 
 	for (i = 0; i < sb->num_cblks; i++) {
 		cblk = &(sb->cblks[i]);

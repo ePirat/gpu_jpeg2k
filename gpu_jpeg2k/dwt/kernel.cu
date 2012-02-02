@@ -34,9 +34,11 @@ type_data *fwt_2d(short filter, type_tile_comp *tile_comp) {
 	type_data *d_idata = tile_comp->img_data_d;
 	/* Result data */
 	type_data *d_odata = NULL;
+	type_image *img = tile_comp->parent_tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 	/* Image data size */
 	const unsigned int smem_size = sizeof(type_data) * tile_comp->width * tile_comp->height;
-	cuda_d_allocate_mem((void**) &d_odata, smem_size);
+	d_odata =  mem_mg->alloc->dev(smem_size, mem_mg->ctx);
 
 	int2 img_size = make_int2(tile_comp->width, tile_comp->height);
 	int2 step = make_int2(tile_comp->width, tile_comp->height);
@@ -47,7 +49,8 @@ type_data *fwt_2d(short filter, type_tile_comp *tile_comp) {
 				+ (PATCHY - 1)) / (PATCHY), 1);
 		/* Copy data between buffers to save previous results */
 		if (i != 0) {
-			cudaMemcpy(d_idata, d_odata, smem_size, cudaMemcpyDeviceToDevice);
+//			cudaMemcpy(d_idata, d_odata, smem_size, cudaMemcpyDeviceToDevice);
+			cuda_memcpy_dtd(d_odata, d_idata, smem_size);
 		}
 
 //		printf("OK gridx %d, gridy %d img_size.x %d img_size.y %d\n", grid_size.x, grid_size.y, img_size.x, img_size.y);
@@ -76,11 +79,13 @@ type_data *fwt_2d(short filter, type_tile_comp *tile_comp) {
 
 	if(tile_comp->num_rlvls == 1)
 	{
-		cudaMemcpy(d_odata, d_idata, smem_size, cudaMemcpyDeviceToDevice);
+//		cudaMemcpy(d_odata, d_idata, smem_size, cudaMemcpyDeviceToDevice);
+		cuda_memcpy_dtd(d_idata, d_odata, smem_size);
 		cudaThreadSynchronize();
 	}
 
-	cuda_d_free(d_idata);
+//	cuda_d_free(d_idata);
+	mem_mg->dealloc->dev(d_idata);
 //	println_end(INFO);
 	return d_odata;
 }

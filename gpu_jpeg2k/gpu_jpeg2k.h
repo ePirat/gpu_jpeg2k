@@ -13,6 +13,9 @@
 #define UNSIGNED 0U
 #define SIGNED 1U
 
+#define DWT_53 0
+#define DWT_97 1
+
 typedef struct {
 	/** Image width */
 	uint16_t img_w;
@@ -44,5 +47,7 @@ typedef struct {
 	size_t length;
 	void *data;
 } Chunk;
+
+void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order);
 
 #endif /* GPU_JPEG2K_H_ */
