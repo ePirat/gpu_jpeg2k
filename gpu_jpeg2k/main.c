@@ -44,7 +44,7 @@ void *cuda_h_allocate_mem(size_t mem_size, void *ctx)
 	return data;
 }
 
-void *cuda_d_allocate_mem(uint64_t mem_size, void *ctx)
+void *cuda_d_allocate_mem(size_t mem_size, void *ctx)
 {
 	void *data;
 	cudaMalloc(&data, mem_size);
@@ -79,7 +79,7 @@ void init_config(Config *config, FIBITMAP *dib) {
 	config->mem_mg = mem_mg;
 }
 
-void read_img(const char *in_file, Config *config) {
+void **read_img(const char *in_file, Config *config) {
 	FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(in_file, 0);
 	FIBITMAP* dib = FreeImage_Load(formato, in_file, 0);
 	FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
@@ -98,7 +98,7 @@ void read_img(const char *in_file, Config *config) {
 			exit(0);
 		}
 
-		init_image(dib, container, param);
+		init_config(config, dib);
 
 		int scan_width = FreeImage_GetPitch(dib);
 		int mem_size = container->height * scan_width;
@@ -114,28 +114,25 @@ void read_img(const char *in_file, Config *config) {
 		long int start_copy;
 		start_copy = start_measure();
 
+		float **img_data_h = (float **)malloc(sizeof(float *) * config->num_comp);
+		int c;
+		for(c = 0; c < config->num_comp; ++c) {
+			img_data_h[c] = (float *)malloc(sizeof(float) * config->img_w * config->img_h);
+		}
+
 		//copying data DIRECTLY as tiles to device
-		int x, y, c, i;
+		int x, y, i;
 		type_tile *tile;
 		type_tile_comp *tile_comp;
-		for(i = 0; i < container->num_tiles; i++) {
-			tile = &(container->tile[i]);
-			for(c = 0; c < container->num_components; c++) {
-				tile_comp = &(tile->tile_comp[c]);
-				for(y = 0; y < tile_comp->height; y++) {
-					for(x = 0; x < tile_comp->width; x++) {
-						tile_comp->img_data[x + y*tile_comp->width] =
-						(type_data)bits[(tile->tly + y) * scan_width + (tile->tlx + x) * container->num_components + c];
-//						if(c == 0)
-//							printf("%6d,", bits[(tile->tly + y) * scan_width + (tile->tlx + x) * container->num_components + c] - 128);
-					}
-//					if(c == 0)
-//						printf("\n");
+		for(c = 0; c < config->num_comp; ++c) {
+			for(y = 0; y < config->img_h; ++y) {
+				for(x = 0; x < config->img_w; ++x) {
+					img_data_h[c][x + y * config->img_w] =
+					(type_data)bits[(tile->tly + y) * scan_width + (tile->tlx + x) * container->num_components + c];
 				}
-				cuda_memcpy_htd(tile_comp->img_data, tile_comp->img_data_d, tile_comp->width * tile_comp->height * sizeof(type_data));
-				cuda_h_free(tile_comp->img_data);
-//				free(tile_comp->img_data);
 			}
+			cuda_memcpy_htd(tile_comp->img_data, tile_comp->img_data_d, tile_comp->width * tile_comp->height * sizeof(type_data));
+			cuda_h_free(tile_comp->img_data);
 		}
 	}
 }
