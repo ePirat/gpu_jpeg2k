@@ -130,14 +130,14 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 	}
 
 //	cuda_d_free(d_outbuf);
-	mem_mg->dealloc->dev(d_outbuf);
+	mem_mg->dealloc->dev(d_outbuf, mem_mg->ctx);
 //	cuda_d_free(d_stBuffors);
-	mem_mg->dealloc->dev(d_stBuffors);
+	mem_mg->dealloc->dev(d_stBuffors, mem_mg->ctx);
 //	cuda_d_free(d_infos);
-	mem_mg->dealloc->dev(d_infos);
+	mem_mg->dealloc->dev(d_infos, mem_mg->ctx);
 
 //	free(h_infos);
-	mem_mg->dealloc->host(h_infos);
+	mem_mg->dealloc->host(h_infos, mem_mg->ctx);
 
 	float elapsed = 0.0f;
 	cudaEventElapsedTime(&elapsed, start, end);

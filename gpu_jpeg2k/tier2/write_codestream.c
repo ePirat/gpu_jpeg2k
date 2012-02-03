@@ -10,7 +10,7 @@
 #include "write_codestream.h"
 #include "../gpu_jpeg2k.h"
 
-Chunk **write_codestream(type_image *img) {
+void write_codestream(type_image *img, Chunk **blocks, Chunk **order) {
 	mem_mg_t *mem_mg = img->mem_mg;
 	type_buffer *buffer = (type_buffer *)mem_mg->alloc->host(sizeof(type_buffer), mem_mg->ctx);
 
@@ -19,11 +19,10 @@ Chunk **write_codestream(type_image *img) {
 	encode_codestream(buffer, img);
 
 	// Currently one chunk
-	Chunk **chunks = (Chunk **)mem_mg->alloc->host(sizeof(Chunk *), mem_mg->ctx);
-	chunks[0] = (Chunk *)mem_mg->alloc->host(sizeof(Chunk), mem_mg->ctx);
-	chunks[0]->data = buffer->data;
-	chunks[0]->length = buffer->bytes_count;
+	*blocks = (Chunk *)mem_mg->alloc->host(sizeof(Chunk), mem_mg->ctx);
+	(*blocks)->data = buffer->data;
+	(*blocks)->length = buffer->bytes_count;
+	*order = *blocks;
 	// TODO
 //	mem_mg->dealloc->host(buffer);
-	return chunks;
 }

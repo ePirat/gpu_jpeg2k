@@ -166,9 +166,9 @@ int truncateSize(int codeBlocks, int maxStatesPerCodeBlock, CodeBlockAdditionalI
 	}
 
 //	cuda_d_free(sizes_d);
-	mem_mg->dealloc->dev(sizes_d);
+	mem_mg->dealloc->dev(sizes_d, mem_mg->ctx);
 //	cuda_h_free(sizes_h);
-	mem_mg->dealloc->dev(sizes_h);
+	mem_mg->dealloc->host(sizes_h, mem_mg->ctx);
 
 	return size;
 }
@@ -252,7 +252,7 @@ void launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuff
 	_launch_encode_pcrd(gridDim, blockDim, coeffBuffors, outbuf, maxThreadBufforLength, infos, codeBlocks, maxMQStatesPerCodeBlock, pcrdCodeblocks, pcrdCodeblockInfos, mem_mg);
 
 	float *dSlopeMax;
-	dSlopeMax = (float *)mem_mg->alloc->dev(sizeof(float));
+	dSlopeMax = (float *)mem_mg->alloc->dev(sizeof(float), mem_mg->ctx);
 	cuda_d_memset((void *)dSlopeMax, 0, sizeof(float));
 
 	g_slopeCalculation<<<(int) ceil(codeBlocks / 512.0f), 512>>>(codeBlocks, maxMQStatesPerCodeBlock, pcrdCodeblocks, pcrdCodeblockInfos, infos, dSlopeMax);
@@ -276,9 +276,9 @@ void launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuff
 	launch_pcrd(maxMQStatesPerCodeBlock, targetSize, slopeMax, codeBlocks, infos, pcrdCodeblocks, pcrdCodeblockInfos, mem_mg);
 
 //	cuda_d_free(pcrdCodeblocks);
-	mem_mg->dealloc->dev(pcrdCodeblocks);
+	mem_mg->dealloc->dev(pcrdCodeblocks, mem_mg->ctx);
 //	cuda_d_free(pcrdCodeblockInfos);
-	mem_mg->dealloc->dev(pcrdCodeblockInfos);
+	mem_mg->dealloc->dev(pcrdCodeblockInfos, mem_mg->ctx);
 
 //	launch_pcrd(infos, codeBlocks, mqstates, maxMQStatesPerCodeBlock, pcrd);
 }

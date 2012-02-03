@@ -3,6 +3,8 @@
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
+#include "../../misc/memory.h"
+
 #define THREADS 32
 
 #ifdef __CDT_PARSER__

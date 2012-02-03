@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "../misc/memory.h"
 
 #define INIT_BUF_SIZE 128
 

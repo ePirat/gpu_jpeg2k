@@ -73,7 +73,7 @@ void init_codeblocks(type_subband *sb) {
 
 	sb->cblks = (type_codeblock *)mem_mg->alloc->host(sb->num_cblks * sizeof(type_codeblock), mem_mg->ctx);
 
-	//	println_var(INFO, "sb:tlx:%d tly:%d brx:%d bry:%d w:%d h:%d num_xcblks:%d num_ycblks:%d num_cblks:%d", sb->tlx, sb->tly, sb->brx, sb->bry, sb->width, sb->height, sb->num_xcblks, sb->num_ycblks, sb->num_cblks);
+//	println_var(INFO, "sb:tlx:%d tly:%d brx:%d bry:%d w:%d h:%d num_xcblks:%d num_ycblks:%d num_cblks:%d", sb->tlx, sb->tly, sb->brx, sb->bry, sb->width, sb->height, sb->num_xcblks, sb->num_ycblks, sb->num_cblks);
 
 	for (i = 0; i < sb->num_cblks; i++) {
 		cblk = &(sb->cblks[i]);
@@ -123,7 +123,7 @@ void init_subbands(type_res_lvl *res_lvl) {
 	sb_ll_width = ((tile->width + (1 << res_lvl->dec_lvl_no) - 1) >> res_lvl->dec_lvl_no);
 	sb_ll_height = ((tile->height + (1 << res_lvl->dec_lvl_no) - 1) >> res_lvl->dec_lvl_no);
 
-	//	println_var(INFO, "res_lvl_no:%d dec_lvl_no:%d tlx:%d tly:%d brx:%d bry:%d w:%d h:%d prc_exp_w:%d prc_exp_h:%d num_hprc:%d num_vprc:%d num_prcs:%d num_sbs:%d", res_lvl->res_lvl_no, res_lvl->dec_lvl_no, res_lvl->tlx, res_lvl->tly, res_lvl->brx, res_lvl->bry, res_lvl->width, res_lvl->height, res_lvl->prc_exp_w, res_lvl->prc_exp_h, res_lvl->num_hprc, res_lvl->num_vprc, res_lvl->num_prcs, res_lvl->num_subbands);
+//	println_var(INFO, "res_lvl_no:%d dec_lvl_no:%d tlx:%d tly:%d brx:%d bry:%d w:%d h:%d prc_exp_w:%d prc_exp_h:%d num_hprc:%d num_vprc:%d num_prcs:%d num_sbs:%d", res_lvl->res_lvl_no, res_lvl->dec_lvl_no, res_lvl->tlx, res_lvl->tly, res_lvl->brx, res_lvl->bry, res_lvl->width, res_lvl->height, res_lvl->prc_exp_w, res_lvl->prc_exp_h, res_lvl->num_hprc, res_lvl->num_vprc, res_lvl->num_prcs, res_lvl->num_subbands);
 
 	for (i = 0; i < res_lvl->num_subbands; i++) {
 		sb = &(res_lvl->subbands[i]);
@@ -186,7 +186,7 @@ void init_resolution_lvls(type_tile_comp *tile_comp) {
 
 	tile_comp->res_lvls = (type_res_lvl *)mem_mg->alloc->host(tile_comp->num_rlvls * sizeof(type_res_lvl), mem_mg->ctx);
 
-	//	println_var(INFO, "w:%d h:%d num_dlvls:%d num_rlvls:%d cblk_exp_w:%d cblk_exp_h:%d cblk_w:%d cblk_h:%d", tile_comp->width, tile_comp->height, tile_comp->num_dlvls, tile_comp->num_rlvls, tile_comp->cblk_exp_w, tile_comp->cblk_exp_h, tile_comp->cblk_w, tile_comp->cblk_h);
+//	println_var(INFO, "w:%d h:%d num_dlvls:%d num_rlvls:%d cblk_exp_w:%d cblk_exp_h:%d cblk_w:%d cblk_h:%d", tile_comp->width, tile_comp->height, tile_comp->num_dlvls, tile_comp->num_rlvls, tile_comp->cblk_exp_w, tile_comp->cblk_exp_h, tile_comp->cblk_w, tile_comp->cblk_h);
 
 	for (i = 0; i < tile_comp->num_rlvls; i++) {
 		res_lvl = &(tile_comp->res_lvls[i]);
@@ -243,7 +243,7 @@ void init_tile_comps(type_tile *tile) {
 
 	tile->tile_comp = (type_tile_comp *) mem_mg->alloc->host(parent_img->num_components * sizeof(type_tile_comp), mem_mg->ctx);
 
-	//	println_var(INFO, "no:%d tlx:%d tly:%d brx:%d bry:%d w:%d h:%d", tile->tile_no, tile->tlx, tile->tly, tile->brx, tile->bry, tile->width, tile->height);
+//	println_var(INFO, "no:%d tlx:%d tly:%d brx:%d bry:%d w:%d h:%d", tile->tile_no, tile->tlx, tile->tly, tile->brx, tile->bry, tile->width, tile->height);
 
 	for (i = 0; i < parent_img->num_components; i++) {
 		//		println_var(INFO, "%d\n", i);
@@ -288,7 +288,7 @@ void init_tiles(type_image **_img) {
 	/* Temporary pointers */
 	type_tile *tile;
 
-	//println_var(INFO, "container->tile_h:%d container->tile_w:%d", container->tile_h, container->tile_w);
+//	println_var(INFO, "img->tile_h:%d img->tile_w:%d %d %d", img->tile_h, img->tile_w, img->width, img->height);
 
 	img->num_xtiles = (img->width + (img->tile_w - 1)) / img->tile_w;
 	img->num_ytiles = (img->height + (img->tile_h - 1)) / img->tile_h;
@@ -298,7 +298,7 @@ void init_tiles(type_image **_img) {
 	mem_mg_t *mem_mg = img->mem_mg;
 	img->tile = (type_tile *) mem_mg->alloc->host(img->num_tiles * sizeof(type_tile), mem_mg->ctx);
 
-	//	println_var(INFO, "w:%d h:%d no_com:%d area:%d t_w:%d t_h:%d t_x:%d t_y:%d no_t:%d", img->width,img->height,img->num_components,img->area_alloc,img->tile_w,img->tile_h,img->num_xtiles,img->num_ytiles,img->num_tiles);
+//	println_var(INFO, "w:%d h:%d no_com:%d area:%d t_w:%d t_h:%d t_x:%d t_y:%d no_t:%d", img->width,img->height,img->num_components,img->area_alloc,img->tile_w,img->tile_h,img->num_xtiles,img->num_ytiles,img->num_tiles);
 
 	for (i = 0; i < img->num_tiles; i++) {
 		tile = &(img->tile[i]);

@@ -5,6 +5,7 @@
  *      Author: miloszc
  */
 
+#include <stdint.h>
 #include "misc/memory.h"
 
 #ifndef GPU_JPEG2K_H_
@@ -21,9 +22,9 @@ typedef struct {
 	uint16_t img_w;
 	/** Image height */
 	uint16_t img_h;
-	/** Tile width. Default 0 */
+	/** Tile width. Default img_w */
 	uint16_t tile_w;
-	/** Tile height. Default 0 */
+	/** Tile height. Default img_h */
 	uint16_t tile_h;
 	/** Number of image channels/components */
 	uint16_t num_comp;
@@ -35,6 +36,10 @@ typedef struct {
 	uint8_t wavelet_type;
 	/** Number of decomposition levels. Range: 1-5*/
 	uint8_t num_dlvls;
+	/** Nominal exponent value for code-block width */
+	uint8_t cblk_exp_w;
+	/** Nominal exponent value for code-block height */
+	uint8_t cblk_exp_h;
 	/** Transform image to YUV */
 	uint8_t use_mct;
 	/** Target image size in bytes. Default 0 */

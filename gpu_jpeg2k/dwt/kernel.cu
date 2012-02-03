@@ -38,7 +38,7 @@ type_data *fwt_2d(short filter, type_tile_comp *tile_comp) {
 	mem_mg_t *mem_mg = img->mem_mg;
 	/* Image data size */
 	const unsigned int smem_size = sizeof(type_data) * tile_comp->width * tile_comp->height;
-	d_odata =  mem_mg->alloc->dev(smem_size, mem_mg->ctx);
+	d_odata =  (type_data *)mem_mg->alloc->dev(smem_size, mem_mg->ctx);
 
 	int2 img_size = make_int2(tile_comp->width, tile_comp->height);
 	int2 step = make_int2(tile_comp->width, tile_comp->height);
@@ -85,7 +85,7 @@ type_data *fwt_2d(short filter, type_tile_comp *tile_comp) {
 	}
 
 //	cuda_d_free(d_idata);
-	mem_mg->dealloc->dev(d_idata);
+	mem_mg->dealloc->dev(d_idata, mem_mg->ctx);
 //	println_end(INFO);
 	return d_odata;
 }

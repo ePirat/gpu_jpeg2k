@@ -8,6 +8,8 @@
 #ifndef MEMORY_H_
 #define MEMORY_H_
 
+#include <stddef.h>
+
 /** Memory allocator */
 typedef struct {
 	void *(*host)(size_t size, void *ctx);

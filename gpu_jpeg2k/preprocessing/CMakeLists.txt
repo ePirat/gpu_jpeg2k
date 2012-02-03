@@ -7,4 +7,5 @@ mct.c
 
 target_link_libraries(preprocessing
 	klt
+	dwt
 )

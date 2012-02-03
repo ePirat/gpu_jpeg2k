@@ -291,9 +291,9 @@ void __global__ ict_kernel(type_data *img_r, type_data *img_g, type_data *img_b,
 	{
 		while(i < TILE_SIZEX && n < width)
 		{
-			b = img_r[idx] - (1 << level_shift);
+			b = img_b[idx] - (1 << level_shift);
 			g = img_g[idx] - (1 << level_shift);
-			r = img_b[idx] - (1 << level_shift);
+			r = img_r[idx] - (1 << level_shift);
 
 			y = Wr*r + Wg*g + Wb*b;
 			u = -0.16875f * r - 0.33126f * g + 0.5f * b;

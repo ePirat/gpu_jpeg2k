@@ -8,9 +8,11 @@
 #include "gpu_jpeg2k.h"
 #include "tier2/markers.h"
 #include "types/image.h"
+#include "print_info/print_info.h"
 
 static void init_coding_params(type_image *img, Config *config) {
-	img->coding_param = (type_coding_param *)allocator(sizeof(type_coding_param));
+	mem_mg_t *mem_mg = img->mem_mg;
+	img->coding_param = (type_coding_param *)mem_mg->alloc->host(sizeof(type_coding_param), mem_mg->ctx);
 	img->coding_param->target_size = config->target_size;
 	img->coding_param->imgarea_tlx = 0;
 	img->coding_param->imgarea_tly = 0;
@@ -49,11 +51,13 @@ static void init_img(type_image *img, void **img_data, Config *config) {
 	img->num_range_bits = img->depth / img->num_components;
 
 	img->wavelet_type = config->wavelet_type;
-	img->num_dlvls = config->num_dlvls;\
+	img->num_dlvls = config->num_dlvls;
 
 	img->mem_mg = config->mem_mg;
 
 	img->use_mct = config->use_mct;
+	img->cblk_exp_w = config->cblk_exp_w;
+	img->cblk_exp_h = config->cblk_exp_h;
 	img->use_part2_mct = 0;
 	img->mct_compression_method = 0;
 	img->mct_klt_iterations = 0;
@@ -92,6 +96,6 @@ void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order) {
 		encode_tile(tile);
 	}
 	// Write Codestream
-	blocks = write_codestream(img);
+	write_codestream(img, blocks, order);
 //	free(img);
 }

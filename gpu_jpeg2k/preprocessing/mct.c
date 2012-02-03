@@ -8,6 +8,7 @@
 #include "mct.h"
 #include "../types/image_types.h"
 #include "../klt/klt.h"
+#include "../dwt/fwt_1d.h"
 
 void mct(type_image *img) {
 	/* Multicomponent transform and DC */

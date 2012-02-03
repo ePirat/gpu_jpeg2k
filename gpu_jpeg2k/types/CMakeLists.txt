@@ -1,4 +1,5 @@
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
+set(CMAKE_CC_FLAGS ${CMAKE_CC_FLAGS})
 
 add_library(types
 buffered_stream.c
