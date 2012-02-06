@@ -7,15 +7,13 @@
 
 #include "buffer.h"
 
-void init_dec_buffer(FILE *fsrc, type_buffer *src_buff) {
-	fseek(fsrc, 0, SEEK_END);
-	long file_length = ftell(fsrc);
-	fseek(fsrc, 0, SEEK_SET);
+void init_dec_buffer(Chunk *img_data, type_buffer *src_buff) {
+	mem_mg_t *mem_mg = src_buff->mem_mg;
 
-	src_buff->data = (uint8_t *) malloc(file_length);
-	src_buff->size = file_length;
+	src_buff->data = (uint8_t *)mem_mg->alloc->host(img_data->length, mem_mg->ctx);
+	src_buff->size = img_data->length;
 
-	fread(src_buff->data, 1, file_length, fsrc);
+	cuda_memcpy_hth(img_data->data, src_buff->data, img_data->length);
 
 	src_buff->start = src_buff->data;
 	src_buff->end = src_buff->data + src_buff->size;

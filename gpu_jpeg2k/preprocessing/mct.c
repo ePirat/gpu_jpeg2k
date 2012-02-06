@@ -10,7 +10,7 @@
 #include "../klt/klt.h"
 #include "../dwt/fwt_1d.h"
 
-void mct(type_image *img) {
+void enc_mct(type_image *img) {
 	/* Multicomponent transform and DC */
 	if(img->use_mct == 1)
 	{
@@ -39,6 +39,24 @@ void mct(type_image *img) {
 		{
 			//printf("unsigned\n");
 			fdc_level_shifting(img);
+		}
+	}
+}
+
+void dec_mct(type_image *img) {
+	if(img->use_mct == 1) {
+		// lossless decoder
+		if(img->wavelet_type == 0) {
+			color_decoder_lossless(img);
+		}
+		else {  //lossy decoder
+			color_decoder_lossy(img);
+		}
+	} else if (img->use_part2_mct == 1) {
+		decode_klt(img);
+	} else {
+		if(img->sign == UNSIGNED) {
+			idc_level_shifting(img);
 		}
 	}
 }

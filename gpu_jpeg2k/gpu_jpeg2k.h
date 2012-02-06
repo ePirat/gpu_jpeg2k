@@ -54,5 +54,6 @@ typedef struct {
 } Chunk;
 
 void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order);
+void decode(Chunk *img_data, Config *config, Chunk **blocks, Chunk **order);
 
 #endif /* GPU_JPEG2K_H_ */

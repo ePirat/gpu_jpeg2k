@@ -8,6 +8,7 @@
 #include "gpu_jpeg2k.h"
 #include "tier2/markers.h"
 #include "types/image.h"
+#include "types/image_raw.h"
 #include "print_info/print_info.h"
 
 static void init_coding_params(type_image *img, Config *config) {
@@ -34,6 +35,19 @@ static void init_img_data(type_image *img, void **img_data) {
 		for (c = 0; c < img->num_components; ++c) {
 			type_tile_comp *tile_comp = &(tile->tile_comp[c]);
 			tile_comp->img_data_d = (type_data *)img_data[c];
+		}
+	}
+}
+
+static void alloc_img_data(type_image *img) {
+	mem_mg_t *mem_mg = img->mem_mg;
+	int t, c;
+
+	for (t = 0; t < img->num_tiles; ++t) {
+		type_tile *tile = &(img->tile[t]);
+		for (c = 0; c < img->num_components; ++c) {
+			type_tile_comp *tile_comp = &(tile->tile_comp[c]);
+			tile_comp->img_data_d = (type_data *)mem_mg->alloc->dev(sizeof(type_data) * tile_comp->width * tile_comp->height, mem_mg->ctx);
 		}
 	}
 }
@@ -78,7 +92,7 @@ void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order) {
 
 	init_img(img, img_data, config);
 
-	mct(img);
+	enc_mct(img);
 
 	int i = 0;
 	// Do processing for all tiles
@@ -97,5 +111,48 @@ void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order) {
 	}
 	// Write Codestream
 	write_codestream(img, blocks, order);
+//	free(img);
+}
+
+static void fill_config(type_image *img, Config *config) {
+	config->img_w = img->width;
+	config->img_h = img->height;
+	config->num_comp = img->num_components;
+	config->num_dlvls = img->num_dlvls;
+	config->sign = img->sign;
+	config->wavelet_type = img->wavelet_type;
+	config->tile_w = img->tile_w;
+	config->tile_h = img->tile_h;
+}
+
+void decode(Chunk *img_data, Config *config, Chunk **blocks, Chunk **order) {
+	mem_mg_t *mem_mg = config->mem_mg;
+	type_buffer *src_buff = (type_buffer *)mem_mg->alloc->host(sizeof(type_buffer), mem_mg->ctx);
+	src_buff->mem_mg = mem_mg;
+
+	init_dec_buffer(img_data, src_buff);
+
+	type_image *img = (type_image *)mem_mg->alloc->host(sizeof(type_image), mem_mg->ctx);
+	img->mem_mg = mem_mg;
+	decode_codestream(src_buff, img);
+	alloc_img_data(img);
+
+	int i = 0;
+	// Do decoding for all tiles
+	for(i = 0; i < img->num_tiles; ++i)	{
+		type_tile *tile = &(img->tile[i]);
+		/* Decode data */
+		decode_tile(tile);
+		/* Dequantize data */
+		dequantize_tile(tile);
+		/* Do inverse wavelet transform */
+		iwt(tile);
+	}
+
+	dec_mct(img);
+
+	fill_config(img, config);
+//	save_image(img);
+	save_raw(img, blocks, order);
 //	free(img);
 }

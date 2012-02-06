@@ -111,14 +111,17 @@ type_data *iwt_2d(short filter, type_tile_comp *tile_comp) {
 	type_data *d_odata = NULL;
 	/* Image data size */
 	const unsigned int smem_size = sizeof(type_data) * tile_comp->width * tile_comp->height;
-	cuda_d_allocate_mem((void**) &d_odata, smem_size);
+	mem_mg_t *mem_mg = tile_comp->parent_tile->parent_img->mem_mg;
+	d_odata = (type_data *)mem_mg->alloc->dev(smem_size, mem_mg->ctx);
+
+	// TODO Do we need it?
 	cudaMemset(d_odata, 0, smem_size);
 
 	int2 img_size = make_int2(tile_comp->width, tile_comp->height);
 	int2 step = make_int2(tile_comp->width, tile_comp->height);
 
-	sub_x = (int *)malloc((tile_comp->num_dlvls - 1) * sizeof(int));
-	sub_y = (int *)malloc((tile_comp->num_dlvls - 1) * sizeof(int));
+	sub_x = (int *)mem_mg->alloc->host((tile_comp->num_dlvls - 1) * sizeof(int), mem_mg->ctx);
+	sub_y = (int *)mem_mg->alloc->host((tile_comp->num_dlvls - 1) * sizeof(int), mem_mg->ctx);
 
 	for(i = 0; i < tile_comp->num_dlvls - 1; i++) {
 		sub_x[i] = (img_size.x % 2 == 1) ? 1 : 0;
@@ -171,10 +174,10 @@ type_data *iwt_2d(short filter, type_tile_comp *tile_comp) {
 		}
 	}
 
-	free(sub_x);
-	free(sub_y);
+	mem_mg->dealloc->host(sub_x, mem_mg->ctx);
+	mem_mg->dealloc->host(sub_y, mem_mg->ctx);
 
-	cuda_d_free(d_idata);
+	mem_mg->dealloc->dev(d_idata, mem_mg->ctx);
 
 	return d_odata;
 }

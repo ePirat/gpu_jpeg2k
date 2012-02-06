@@ -8,7 +8,7 @@ find_package(PkgConfig REQUIRED)
 
 #include_directories(${XML_INCLUDE_DIRS})
 
-cuda_add_library(gpu_coeff_coder 
+cuda_add_library(gpu_coeff_coder  SHARED
 	gpu_coeff_coder.cpp 
 	gpu_coeff_coder2.cu
 	coeff_coder_pcrd.cu

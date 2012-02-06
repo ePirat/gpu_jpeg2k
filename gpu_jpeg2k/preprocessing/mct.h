@@ -11,6 +11,7 @@
 #include "../types/image_types.h"
 #include "../config/parameters.h"
 
-void mct(type_image *img);
+void enc_mct(type_image *img);
+void dec_mct(type_image *img);
 
 #endif /* MCT_H_ */

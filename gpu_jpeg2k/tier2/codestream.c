@@ -185,8 +185,8 @@ void write_cod_marker(type_buffer *buffer, type_image *img)
 void read_cod_marker(type_buffer *buffer, type_image *img)
 {
 	int length, pos, i;
-	mem_mg_t *mem_mg = buffer->mem_mg;
-	type_parameters *param = (type_parameters *)mem_mg->alloc->host(sizeof(type_parameters), mem_mg->ctx);
+//	mem_mg_t *mem_mg = buffer->mem_mg;
+//	type_parameters *param = (type_parameters *)mem_mg->alloc->host(sizeof(type_parameters), mem_mg->ctx);
 	int marker;
 
 	/* Read COD marker */
@@ -213,15 +213,17 @@ void read_cod_marker(type_buffer *buffer, type_image *img)
 	/* Number of decomposition levels */
 	img->num_dlvls = read_buffer(buffer, 1);
 	/* Code-block width and height. TODO: Check */
-	param->param_cblk_exp_w = read_buffer(buffer, 1) + 2;
-	param->param_cblk_exp_h = read_buffer(buffer, 1) + 2;
+	img->cblk_exp_w = read_buffer(buffer, 1) + 2;
+	img->cblk_exp_h = read_buffer(buffer, 1) + 2;
 	/* Style of the code-block coding passes */
 	/* XXX: Only no selective arithmetic coding bypass */
 	img->cblk_coding_style = read_buffer(buffer, 1);
 	/* Wavelet transform */
 	img->wavelet_type = read_buffer(buffer, 1) == 0 ? DWT_97 : DWT_53;
 
-	init_tiles(&img, param);
+//	printf("", img->width, img->height, );
+
+	init_tiles(&img);
 	/* TODO: In future read precinct partition */
 }
 
@@ -908,6 +910,7 @@ void decode_packet_body(type_buffer *buffer, type_res_lvl *res_lvl)
 	int i, j;
 	type_subband *sb;
 	type_codeblock *cblk;
+	mem_mg_t *mem_mg = buffer->mem_mg;
 
 	for (i = 0; i < res_lvl->num_subbands; i++) {
 		sb = &(res_lvl->subbands[i]);
@@ -918,7 +921,7 @@ void decode_packet_body(type_buffer *buffer, type_res_lvl *res_lvl)
 				cblk->num_segments++;
 			}*/
 
-			cuda_h_allocate_mem((void **) &(cblk->codestream), cblk->length);
+			cblk->codestream = (uint8_t *)mem_mg->alloc->host(cblk->length, mem_mg->ctx);
 			cuda_memcpy_hth(buffer->bp, cblk->codestream, cblk->length);
 
 //			int z;

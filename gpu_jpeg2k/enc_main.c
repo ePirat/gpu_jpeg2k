@@ -22,7 +22,7 @@ FreeImage error handler
 @param fif Format / Plugin responsible for the error
 @param message Error message
 */
-void _FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
+static void _FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
    printf("\n*** ");
    if(fif != FIF_UNKNOWN) {
      printf("%s Format\n", FreeImage_GetFormatFromFIF(fif));
@@ -31,7 +31,7 @@ void _FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
    printf(" ***\n");
 }
 
-void init_mem_mg(mem_mg_t *mem_mg) {
+static void init_mem_mg(mem_mg_t *mem_mg) {
 	mem_mg->alloc = (alloc_t *)malloc(sizeof(alloc_t));
 	mem_mg->alloc->host = _cuda_h_allocate_mem;
 	mem_mg->alloc->dev = _cuda_d_allocate_mem;
@@ -40,7 +40,7 @@ void init_mem_mg(mem_mg_t *mem_mg) {
 	mem_mg->dealloc->dev = _cuda_d_free;
 }
 
-void init_img(Config *config, FIBITMAP *dib) {
+static void init_img(Config *config, FIBITMAP *dib) {
 	// lossy compression
 	config->img_h = FreeImage_GetHeight(dib);
 	config->img_w = FreeImage_GetWidth(dib);
@@ -66,7 +66,7 @@ void init_config(Config *config, type_parameters *param) {
 	config->target_size = param->param_target_size;
 }
 
-void **read_img(const char *in_file, Config *config) {
+static void **read_img(const char *in_file, Config *config) {
 	FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(in_file, 0);
 	FIBITMAP* dib = FreeImage_Load(formato, in_file, 0);
 	FREE_IMAGE_TYPE image_type = FreeImage_GetImageType(dib);
@@ -127,7 +127,7 @@ void **read_img(const char *in_file, Config *config) {
 	return (void **)img_data_d;
 }
 
-void save_img(const char *out_file, Chunk *img) {
+static void save_img(const char *out_file, Chunk *img) {
 	FILE *fp = fopen(out_file, "wb");
 
 	size_t count = fwrite(img->data, sizeof(uint8_t), img->length, fp);

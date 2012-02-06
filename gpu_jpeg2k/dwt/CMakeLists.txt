@@ -1,6 +1,6 @@
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 
-cuda_add_library(dwt 
+cuda_add_library(dwt SHARED
 dwt.cu
 fwt.cu
 fwt_new.cu

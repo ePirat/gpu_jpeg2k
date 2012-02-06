@@ -1,6 +1,6 @@
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 
-cuda_add_library(tier2
+cuda_add_library(tier2 SHARED
 codestream.c
 codestream_mct.c
 tag_tree_encode.c

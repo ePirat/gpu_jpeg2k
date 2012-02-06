@@ -117,6 +117,8 @@ type_subband *dequantization(type_subband *sb)
 	int max_res_lvl;
 	int i;
 
+	mem_mg_t *mem_mg = img->mem_mg;
+
 	/* Lossy */
 	if (img->wavelet_type)
 	{
@@ -141,7 +143,7 @@ type_subband *dequantization(type_subband *sb)
 //		printf("%d\n", shift_bits);
 	}
 
-	cuda_d_allocate_mem((void **) &(sb->cblks_data_d), sb->width * sb->height/*sb->num_cblks * tile_comp->cblk_w * tile_comp->cblk_h*/ * sizeof(int32_t));
+	sb->cblks_data_d = (int32_t *)mem_mg->alloc->dev(sb->width * sb->height/*sb->num_cblks * tile_comp->cblk_w * tile_comp->cblk_h*/ * sizeof(int32_t), mem_mg->ctx);
 
 //		printf("%d %d %d\n", sb->num_cblks, tile_comp->cblk_w, tile_comp->cblk_h);
 	int32_t *dst;
@@ -154,7 +156,7 @@ type_subband *dequantization(type_subband *sb)
 		cuda_memcpy2d_dtd(cblk->data_d, /*cblk->width*/tile_comp->cblk_w * sizeof(int32_t), dst, sb->width * sizeof(int32_t), cblk->width * sizeof(int32_t),
 				cblk->height);
 
-		cuda_d_free(cblk->data_d);
+		mem_mg->dealloc->dev(cblk->data_d, mem_mg->ctx);
 	}
 
 	/* Input and output data */
@@ -224,7 +226,7 @@ type_subband *dequantization(type_subband *sb)
 	if (error = cudaGetLastError())
 	printf("Error %s\n", cudaGetErrorString(error));
 
-	cuda_d_free(sb->cblks_data_d);
+	mem_mg->dealloc->dev(sb->cblks_data_d, mem_mg->ctx);
 
 	return sb;
 }

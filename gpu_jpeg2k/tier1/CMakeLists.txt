@@ -1,6 +1,6 @@
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 
-cuda_add_library(tier1
+cuda_add_library(tier1 SHARED
 quantization.c
 quantizer.cu
 dequantizer.cu

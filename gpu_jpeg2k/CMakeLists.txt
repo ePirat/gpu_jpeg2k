@@ -25,13 +25,12 @@ add_subdirectory(file_access)
 add_subdirectory(types)
 add_subdirectory(klt)
 
-cuda_add_executable(main
+cuda_add_library(gpu_jpeg2k SHARED
 print_info/print_info.c
 gpu_jpeg2k.c
-func.cu
-main.c)
+)
 
-TARGET_LINK_LIBRARIES(main 
+TARGET_LINK_LIBRARIES(gpu_jpeg2k 
 ${FREEIMAGE_LIBRARY} 
 m
 gpu_coeff_coder 
@@ -43,3 +42,23 @@ misc
 tier1
 tier2
 types)
+
+cuda_add_executable(enc_main
+print_info/print_info.c
+func.cu
+enc_main.c)
+
+TARGET_LINK_LIBRARIES(enc_main 
+${FREEIMAGE_LIBRARY} 
+m
+gpu_jpeg2k)
+
+cuda_add_executable(dec_main
+print_info/print_info.c
+func.cu
+dec_main.c)
+
+TARGET_LINK_LIBRARIES(dec_main 
+${FREEIMAGE_LIBRARY} 
+m
+gpu_jpeg2k)

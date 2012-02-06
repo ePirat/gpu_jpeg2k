@@ -2,7 +2,7 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 #SET(CMAKE_CXX_FLAGS -g)
 #SET(CMAKE_CC_FLAGS -g)
 
-cuda_add_library(klt
+cuda_add_library(klt SHARED
 	klt.cu
 	gs.cu
 	analysis.cu

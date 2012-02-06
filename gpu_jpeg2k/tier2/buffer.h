@@ -9,8 +9,9 @@
 #define BUFFER_H_
 
 #include <stdio.h>
+#include "../gpu_jpeg2k.h"
 #include "../types/buffered_stream.h"
 
-void init_dec_buffer(FILE *fsrc, type_buffer *src_buff);
+void init_dec_buffer(Chunk *img_data, type_buffer *src_buff);
 
 #endif /* BUFFER_H_ */
