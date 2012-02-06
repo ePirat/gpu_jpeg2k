@@ -43,23 +43,3 @@ ${FREEIMAGE_LIBRARY}
 m)
 
 cuda_add_cublas_to_target(gpu_jpeg2k)
-
-cuda_add_executable(enc_main
-print_info/print_info.c
-func.cu
-enc_main.c)
-
-TARGET_LINK_LIBRARIES(enc_main 
-${FREEIMAGE_LIBRARY} 
-m
-gpu_jpeg2k)
-
-cuda_add_executable(dec_main
-print_info/print_info.c
-func.cu
-dec_main.c)
-
-TARGET_LINK_LIBRARIES(dec_main 
-${FREEIMAGE_LIBRARY} 
-m
-gpu_jpeg2k)
