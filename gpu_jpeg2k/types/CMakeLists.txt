@@ -1,7 +1,17 @@
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
-set(CMAKE_CC_FLAGS ${CMAKE_CC_FLAGS})
+SET(JPEG2K_SRCS 
+${JPEG2K_SRCS}
+${CMAKE_CURRENT_SOURCE_DIR}/buffered_stream.c
+${CMAKE_CURRENT_SOURCE_DIR}/image_hyper.c
+${CMAKE_CURRENT_SOURCE_DIR}/image_bsq.c
+${CMAKE_CURRENT_SOURCE_DIR}/image_bip.c
+${CMAKE_CURRENT_SOURCE_DIR}/image_bil.c
+${CMAKE_CURRENT_SOURCE_DIR}/image_ordinary.c
+${CMAKE_CURRENT_SOURCE_DIR}/image_raw.c
+${CMAKE_CURRENT_SOURCE_DIR}/image.c
+PARENT_SCOPE 
+)
 
-add_library(types SHARED
+add_library(types
 buffered_stream.c
 image_hyper.c
 image_bsq.c

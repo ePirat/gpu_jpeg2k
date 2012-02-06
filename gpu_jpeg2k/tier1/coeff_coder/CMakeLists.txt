@@ -1,20 +1,18 @@
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 #"--ptxas-options=-dlcm=cg"
 
-find_package(PkgConfig REQUIRED)
-#find_package(Boost REQUIRED)
-#PKG_CHECK_MODULES(XML libxml++-2.6 REQUIRED)
+SET(JPEG2K_SRCS 
+${JPEG2K_SRCS}
+${CMAKE_CURRENT_SOURCE_DIR}/gpu_coeff_coder.cpp 
+${CMAKE_CURRENT_SOURCE_DIR}/gpu_coeff_coder2.cu
+${CMAKE_CURRENT_SOURCE_DIR}/coeff_coder_pcrd.cu
+PARENT_SCOPE 
+)
 
-#include_directories(${XML_INCLUDE_DIRS})
-
-cuda_add_library(gpu_coeff_coder  SHARED
+cuda_add_library(gpu_coeff_coder
 	gpu_coeff_coder.cpp 
 	gpu_coeff_coder2.cu
 	coeff_coder_pcrd.cu
-	)
-	
-#target_link_libraries(gpu_coeff_coder ${XML_LIBRARIES})
+)
 
 TARGET_LINK_LIBRARIES(gpu_coeff_coder 
 	misc

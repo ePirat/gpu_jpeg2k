@@ -11,7 +11,14 @@ SET(CMAKE_CC_FLAGS "-O3 -g -fno-builtin")
 SET(CUDA_NVCC_FLAGS -O3 -g -G --compiler-options -fpermissive -arch sm_20 --maxrregcount 64 --ptxas-options=-v)
 SET(CUDA_VERBOSE_BUILD ON)
 
+SET(BUILD_SHARED_LIBS ON)
+
 include_directories(${FREEIMAGE_INCLUDE_PATH})
+
+# Set source files
+SET(JPEG2K_SRCS 
+print_info/print_info.c
+gpu_jpeg2k.c)
 
 add_subdirectory(tier1/coeff_coder)
 add_subdirectory(config)
@@ -25,23 +32,17 @@ add_subdirectory(file_access)
 add_subdirectory(types)
 add_subdirectory(klt)
 
-cuda_add_library(gpu_jpeg2k SHARED
-print_info/print_info.c
-gpu_jpeg2k.c
+#message(STATUS "${JPEG2K_SRCS}")
+
+cuda_add_library(gpu_jpeg2k
+${JPEG2K_SRCS}
 )
 
 TARGET_LINK_LIBRARIES(gpu_jpeg2k 
 ${FREEIMAGE_LIBRARY} 
-m
-gpu_coeff_coder 
-config
-dwt
-klt
-preprocessing
-misc
-tier1
-tier2
-types)
+m)
+
+cuda_add_cublas_to_target(gpu_jpeg2k)
 
 cuda_add_executable(enc_main
 print_info/print_info.c

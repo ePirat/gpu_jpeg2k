@@ -11,6 +11,10 @@
 #ifndef GPU_JPEG2K_H_
 #define GPU_JPEG2K_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define UNSIGNED 0U
 #define SIGNED 1U
 
@@ -55,5 +59,9 @@ typedef struct {
 
 void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order);
 void decode(Chunk *img_data, Config *config, Chunk **blocks, Chunk **order);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GPU_JPEG2K_H_ */

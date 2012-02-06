@@ -1,6 +1,17 @@
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
+SET(JPEG2K_SRCS 
+${JPEG2K_SRCS}
+${CMAKE_CURRENT_SOURCE_DIR}/dwt.cu
+${CMAKE_CURRENT_SOURCE_DIR}/fwt.cu
+${CMAKE_CURRENT_SOURCE_DIR}/fwt_new.cu
+${CMAKE_CURRENT_SOURCE_DIR}/fwt_1d.cu
+${CMAKE_CURRENT_SOURCE_DIR}/iwt_1d.cu
+${CMAKE_CURRENT_SOURCE_DIR}/iwt.cu
+${CMAKE_CURRENT_SOURCE_DIR}/iwt_new.cu
+${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu
+PARENT_SCOPE 
+)
 
-cuda_add_library(dwt SHARED
+cuda_add_library(dwt
 dwt.cu
 fwt.cu
 fwt_new.cu
