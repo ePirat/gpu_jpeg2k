@@ -31,6 +31,21 @@ static void _FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
    printf(" ***\n");
 }
 
+static void init_mem(mem_t *mem) {
+	// 512 MB = 536870912
+	cuda_d_allocate_mem(&(mem->p), 536870912);
+	mem->size = 536870912;
+	mem->alloc_size = 0;
+}
+
+static void init_ctx(ctx_t *ctx) {
+	ctx->max = 0;
+	ctx->head = NULL;
+	mem_t *mem = (mem_t *)malloc(sizeof(mem_t));
+	init_mem(mem);
+	ctx->mem = mem;
+}
+
 static void init_mem_mg(mem_mg_t *mem_mg) {
 	mem_mg->alloc = (alloc_t *)malloc(sizeof(alloc_t));
 	mem_mg->alloc->host = _cuda_h_allocate_mem;
@@ -38,6 +53,10 @@ static void init_mem_mg(mem_mg_t *mem_mg) {
 	mem_mg->dealloc = (dealloc_t *)malloc(sizeof(dealloc_t));
 	mem_mg->dealloc->host = _cuda_h_free;
 	mem_mg->dealloc->dev = _cuda_d_free;
+
+	ctx_t *ctx = (ctx_t *)malloc(sizeof(ctx_t));
+	init_ctx(ctx);
+	mem_mg->ctx = (void *)ctx;
 }
 
 static void init_img(Config *config, FIBITMAP *dib) {
@@ -102,13 +121,14 @@ static void **read_img(const char *in_file, Config *config) {
 		FreeImage_Unload(src);
 
 		type_data **img_data_h = (type_data **)malloc(sizeof(type_data *) * config->num_comp);
+		mem_mg_t *mem_mg = config->mem_mg;
 		int c;
 		for(c = 0; c < config->num_comp; ++c) {
-			cuda_h_allocate_mem((void **)&img_data_h[c], sizeof(type_data) * config->img_w * config->img_h);
+			img_data_h[c] = (type_data *)mem_mg->alloc->host(sizeof(type_data) * config->img_w * config->img_h, mem_mg->ctx);
 		}
 		img_data_d = (type_data **)malloc(sizeof(type_data *) * config->num_comp);
 		for(c = 0; c < config->num_comp; ++c) {
-			cuda_d_allocate_mem((void **)&img_data_d[c], sizeof(type_data) * config->img_w * config->img_h);
+			img_data_d[c] = (type_data *)mem_mg->alloc->dev(sizeof(type_data) * config->img_w * config->img_h, mem_mg->ctx);
 		}
 
 		//copying data DIRECTLY as tiles to device
@@ -172,6 +192,9 @@ int main(int argc, char *argv[]) {
 	encode(img_data, config, &blocks, &order);
 
 	save_img(img->out_file, blocks);
+
+//	printf("unallocated size %lld\n", actual_size(((ctx_t *)config->mem_mg->ctx)->head));
+//	printf("max used memory in bytes %lld\n", ((ctx_t *)config->mem_mg->ctx)->max);
 
 	free(config);
 

@@ -202,6 +202,7 @@ void quantize_tile(type_tile *tile)
 //	start_measure();
 
 	type_image *img = tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 	type_tile_comp *tile_comp;
 	type_res_lvl *res_lvl;
 	type_subband *sb;
@@ -219,7 +220,7 @@ void quantize_tile(type_tile *tile)
 				quantization(sb);
 			}
 		}
-		cuda_d_free(tile_comp->img_data_d);
+		mem_mg->dealloc->dev(tile_comp->img_data_d, mem_mg->ctx);
 	}
 
 //	stop_measure(INFO);

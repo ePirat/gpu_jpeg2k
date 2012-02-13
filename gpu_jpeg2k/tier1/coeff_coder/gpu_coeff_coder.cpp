@@ -307,6 +307,29 @@ void encode_tasks_serial(type_tile *tile) {
 	mem_mg->dealloc->host(tasks, mem_mg->ctx);
 }
 
+void free_subband(type_tile *tile) {
+	type_image *img = tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
+	type_tile_comp *tile_comp;
+	type_res_lvl *res_lvl;
+	type_subband *sb;
+	int i, j, k;
+
+	for(i = 0; i < img->num_components; i++)
+	{
+		tile_comp = &(tile->tile_comp[i]);
+		for(j = 0; j < tile_comp->num_rlvls; j++)
+		{
+			res_lvl = &(tile_comp->res_lvls[j]);
+			for(k = 0; k < res_lvl->num_subbands; k++)
+			{
+				sb = &(res_lvl->subbands[k]);
+				mem_mg->dealloc->dev(sb->cblks_data_d, mem_mg->ctx);
+			}
+		}
+	}
+}
+
 void encode_tile(type_tile *tile)
 {
 //	println_start(INFO);
@@ -314,6 +337,8 @@ void encode_tile(type_tile *tile)
 //	start_measure();
 
 	encode_tasks_serial(tile);
+
+	free_subband(tile);
 
 //	stop_measure(INFO);
 

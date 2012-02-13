@@ -25,6 +25,7 @@ message(STATUS )
 cuda_add_executable(enc_main
 ../print_info/print_info.c
 func.cu
+list.c
 enc_main.c)
 
 TARGET_LINK_LIBRARIES(enc_main 
@@ -35,6 +36,7 @@ ${GPUJPEG2K_LIBRARY})
 cuda_add_executable(dec_main
 ../print_info/print_info.c
 func.cu
+list.c
 dec_main.c)
 
 TARGET_LINK_LIBRARIES(dec_main 

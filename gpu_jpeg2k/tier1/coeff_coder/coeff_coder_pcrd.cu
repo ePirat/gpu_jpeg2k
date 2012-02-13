@@ -269,6 +269,7 @@ void launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuff
 
 	float slopeMax;
 	cuda_memcpy_dth(dSlopeMax, &slopeMax, sizeof(float));
+	mem_mg->dealloc->dev(dSlopeMax, mem_mg->ctx);
 
 	//TODO
 //	int targetSize = 380;
