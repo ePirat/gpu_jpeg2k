@@ -11,6 +11,7 @@
 #include "../config/parameters.h"
 
 void init_tiles(type_image **_img);
+void deinit_tiles(type_image *img);
 void set_coding_parameters(type_image *img, type_parameters *param);
 int read_image(type_image *img, type_parameters *param);
 void save_image(type_image *img);

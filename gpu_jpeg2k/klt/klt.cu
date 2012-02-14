@@ -22,9 +22,9 @@ extern "C" {
 
 void encode_klt(type_image *img) {
 //	checkCUDAError("before MCT");
-	long int start_klt;
-	start_klt = start_measure();
-	clock_t start = clock();
+//	long int start_klt;
+//	start_klt = start_measure();
+//	clock_t start = clock();
 
 #ifdef PART_TIME
 	long int start_prepare_data;
@@ -105,7 +105,7 @@ void encode_klt(type_image *img) {
 
 	/* calculating eigenvectors and eigenvalues */
    
-	clock_t gs_start = clock();
+//	clock_t gs_start = clock();
 #ifdef MCT_CALC_GS
 	gram_schmidt(img->num_components, output, covMatrix_d, eValues, img->mct_klt_iterations, img->mct_klt_err);
 #endif
@@ -315,11 +315,11 @@ void encode_klt(type_image *img) {
 
 void decode_tile_mcc(type_mcc_data* mcc, type_tile* tile, type_image* img) {
 
-	clock_t start = clock();
-	type_mct* mct_matrix;
-	type_mct* mct_offset;
+//	clock_t start = clock();
+	type_mct* mct_matrix = NULL;
+	type_mct* mct_offset = NULL;
 
-	int i;
+	unsigned int i;
 	for(i=0; img->mct_data->mcts_count[MCT_DECORRELATION_TRANSFORMATION]; ++i) {
 		mct_matrix = img->mct_data->mcts[MCT_DECORRELATION_TRANSFORMATION];
 		if(mct_matrix->index == mcc->decorrelation_transform_matrix)
@@ -428,11 +428,11 @@ void decode_tile_mcc(type_mcc_data* mcc, type_tile* tile, type_image* img) {
 	cudaThreadSynchronize();
 		writeSampleWithSum<<<1,mcc->output_count>>>(components_out_pd, j, data_d, off_d);
 	}
-	println_var(INFO, "Time of MCT processing %f", ((double)clock() - start)/ CLOCKS_PER_SEC);
+//	println_var(INFO, "Time of MCT processing %f", ((double)clock() - start)/ CLOCKS_PER_SEC);
 }
 
 void decode_klt(type_image *img) {
-	int i,j,k;
+	unsigned int i, j, k;
 	type_mcc* mcc;
 	type_mcc_data* mcc_data;
 	for(i=0; i<img->mct_data->mccs_count; ++i) {

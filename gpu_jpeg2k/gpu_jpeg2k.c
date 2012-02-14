@@ -26,6 +26,11 @@ static void init_coding_params(type_image *img, Config *config) {
 	img->coding_param->base_step = 1.0 / (float) (1 << (img->num_range_bits - 1));
 }
 
+static void deinit_coding_params(type_image *img) {
+	mem_mg_t *mem_mg = img->mem_mg;
+	mem_mg->dealloc->host(img->coding_param, mem_mg->ctx);
+}
+
 static void init_img_data(type_image *img, void **img_data) {
 	mem_mg_t *mem_mg = img->mem_mg;
 	int t, c;
@@ -35,19 +40,6 @@ static void init_img_data(type_image *img, void **img_data) {
 		for (c = 0; c < img->num_components; ++c) {
 			type_tile_comp *tile_comp = &(tile->tile_comp[c]);
 			tile_comp->img_data_d = (type_data *)img_data[c];
-		}
-	}
-}
-
-static void alloc_img_data(type_image *img) {
-	mem_mg_t *mem_mg = img->mem_mg;
-	int t, c;
-
-	for (t = 0; t < img->num_tiles; ++t) {
-		type_tile *tile = &(img->tile[t]);
-		for (c = 0; c < img->num_components; ++c) {
-			type_tile_comp *tile_comp = &(tile->tile_comp[c]);
-			tile_comp->img_data_d = (type_data *)mem_mg->alloc->dev(sizeof(type_data) * tile_comp->width * tile_comp->height, mem_mg->ctx);
 		}
 	}
 }
@@ -86,6 +78,13 @@ static void init_img(type_image *img, void **img_data, Config *config) {
 	init_img_data(img, img_data);
 }
 
+static void deinit_img(type_image *img) {
+	mem_mg_t *mem_mg = img->mem_mg;
+	deinit_tiles(img);
+	deinit_coding_params(img);
+	mem_mg->dealloc->host(img, mem_mg->ctx);
+}
+
 void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order) {
 	mem_mg_t *mem_mg = config->mem_mg;
 	type_image *img = (type_image *)mem_mg->alloc->host(sizeof(type_image), mem_mg->ctx);
@@ -111,6 +110,8 @@ void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order) {
 	}
 	// Write Codestream
 	write_codestream(img, blocks, order);
+
+	deinit_img(img);
 //	free(img);
 }
 
@@ -123,6 +124,19 @@ static void fill_config(type_image *img, Config *config) {
 	config->wavelet_type = img->wavelet_type;
 	config->tile_w = img->tile_w;
 	config->tile_h = img->tile_h;
+}
+
+static void alloc_img_data(type_image *img) {
+	mem_mg_t *mem_mg = img->mem_mg;
+	int t, c;
+
+	for (t = 0; t < img->num_tiles; ++t) {
+		type_tile *tile = &(img->tile[t]);
+		for (c = 0; c < img->num_components; ++c) {
+			type_tile_comp *tile_comp = &(tile->tile_comp[c]);
+			tile_comp->img_data_d = (type_data *)mem_mg->alloc->dev(sizeof(type_data) * tile_comp->width * tile_comp->height, mem_mg->ctx);
+		}
+	}
 }
 
 void decode(Chunk *img_data, Config *config, Chunk **blocks, Chunk **order) {

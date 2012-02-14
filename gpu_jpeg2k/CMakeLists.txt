@@ -1,15 +1,29 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+project(GPU_JPEG2K)
+
+if(CUDA_ARCH)
+	message(STATUS "Using CUDA_ARCH:${CUDA_ARCH}")
+else()
+	message(STATUS "Empty CUDA_ARCH. Using default sm_20")
+	SET(CUDA_ARCH "sm_20")
+endif()
+
+string(SUBSTRING ${CUDA_ARCH} 3 2 CUDA_ARCH_NUM)
+
+if(${CUDA_ARCH_NUM} LESS 20)
+	SET(MAX_REG_COUNT 64)
+else()
+	SET(MAX_REG_COUNT 63)
+endif()
 
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake" "${PROJECT_SOURCE_DIR}/CMake/cuda" ${CMAKE_MODULE_PATH})
 FIND_PACKAGE(CUDA)
 FIND_PACKAGE(FreeImage)
 
-#Uncomment next line to enable debugging (for use with cuda-gdb)
-#SET(CUDA_NVCC_FLAGS -g -G --compiler-options -fpermissive)
-SET(CMAKE_CXX_FLAGS "-O3 -g -fno-builtin")
-SET(CMAKE_CC_FLAGS "-O3 -g -fno-builtin")
-SET(CUDA_NVCC_FLAGS -O3 -g -G --compiler-options -fpermissive -arch sm_20 --maxrregcount 64 --ptxas-options=-v)
-SET(CUDA_VERBOSE_BUILD ON)
+SET(CMAKE_CXX_FLAGS "-Wall -O3")
+SET(CMAKE_CC_FLAGS "-Wall -O3")
+SET(CUDA_NVCC_FLAGS -arch ${CUDA_ARCH} --maxrregcount ${MAX_REG_COUNT})
+#SET(CUDA_VERBOSE_BUILD ON)
 
 SET(BUILD_SHARED_LIBS ON)
 

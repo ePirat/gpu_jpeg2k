@@ -555,6 +555,13 @@ type_packet *prepare_packet(type_subband *sb)
 	return packet;
 }
 
+void deinit_packet(type_packet *packet, mem_mg_t *mem_mg) {
+	mem_mg->dealloc->host(packet->inclusion, mem_mg->ctx);
+	mem_mg->dealloc->host(packet->zero_bit_plane, mem_mg->ctx);
+	mem_mg->dealloc->host(packet->num_coding_passes, mem_mg->ctx);
+	mem_mg->dealloc->host(packet, mem_mg->ctx);
+}
+
 /**
  * @brief Encodes number of coding passes.
  *
@@ -697,6 +704,8 @@ void encode_packet_header(type_buffer *buffer, type_res_lvl *res_lvl)
 	int i, j, k;
 	/* TODO: Only one layer */
 	int layer = 0;
+	type_image *img = res_lvl->parent_tile_comp->parent_tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 	type_packet *packet;
 	type_subband *sb;
 	type_codeblock *cblk;
@@ -742,6 +751,7 @@ void encode_packet_header(type_buffer *buffer, type_res_lvl *res_lvl)
 
 			/* } */
 		}
+		deinit_packet(packet, mem_mg);
 	}
 	if (buffer->bits_count == 8) {
 		if (buffer->byte & 0xff == 0xff) {
@@ -891,6 +901,8 @@ void encode_packet_body(type_buffer *buffer, type_res_lvl *res_lvl)
 	int i, j;
 	type_subband *sb;
 	type_codeblock *cblk;
+	type_image *img = res_lvl->parent_tile_comp->parent_tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 
 	for (i = 0; i < res_lvl->num_subbands; i++) {
 		sb = &(res_lvl->subbands[i]);
@@ -900,6 +912,8 @@ void encode_packet_body(type_buffer *buffer, type_res_lvl *res_lvl)
 //			println_var(INFO, "%d) %d", cblk->cblk_no, cblk->length);
 			sum_size += cblk->length;
 			write_array(buffer, cblk->codestream, cblk->length);
+			if(cblk->length > 0)
+				mem_mg->dealloc->host(cblk->codestream, mem_mg->ctx);
 		}
 	}
 	//	println_end(INFO);

@@ -108,7 +108,6 @@ type_subband *quantization(type_subband *sb)
 
 	dim3 blocks;
 	dim3 threads;
-	int i;
 	type_codeblock *cblk;
 
 	type_res_lvl *res_lvl = sb->parent_res_lvl;
@@ -179,6 +178,7 @@ type_subband *quantization(type_subband *sb)
 
 	checkCUDAError("quantization");
 
+	unsigned int i;
 	/* Update code blocks pointer to data */
 	for(i = 0; i < sb->num_cblks; i++)
 	{

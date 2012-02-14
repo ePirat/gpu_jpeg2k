@@ -487,7 +487,8 @@ int color_trans_gpu(type_image *img, color_trans_type type) {
 		cudaEventCreate(&kernel_stop);
 	#endif
 
-	int tile_size = 0, i;
+	int tile_size = 0;
+	unsigned int i;
 	type_tile *tile;
 	type_data *comp_a, *comp_b, *comp_c;
 
@@ -610,8 +611,8 @@ int color_trans_gpu(type_image *img, color_trans_type type) {
 
 	checkCUDAError("color_trans_gpu");
 
-	float kernel_time;
 	#ifdef COMPUTE_TIME
+		float kernel_time;
 		cudaEventElapsedTime( &kernel_time, kernel_start, kernel_stop );
 		cudaEventDestroy( kernel_start );
 		cudaEventDestroy( kernel_stop );
@@ -623,7 +624,7 @@ int color_trans_gpu(type_image *img, color_trans_type type) {
 
 void dc_level_shifting(type_image *img, int sign)
 {
-	int i, j;
+	unsigned int i, j;
 	type_tile *tile;
 	type_data *idata;
 	int min = 0;

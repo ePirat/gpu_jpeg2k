@@ -96,12 +96,12 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 	if(targetSize == 0)
 	{
 		//printf("No pcrd\n");
-		CHECK_ERRORS(GPU_JPEG2K::launch_encode((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_outbuf, maxOutLength, d_infos, codeBlocks, mem_mg));
+		GPU_JPEG2K::launch_encode((int)ceil((double)codeBlocks/(double)THREADS), THREADS, d_stBuffors, d_outbuf, maxOutLength, d_infos, codeBlocks, mem_mg);
 	}
 	else
 	{
 		//printf("Pcrd\n");
-		CHECK_ERRORS(GPU_JPEG2K::launch_encode_pcrd((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_outbuf, maxOutLength, d_infos, codeBlocks, targetSize, mem_mg));
+		GPU_JPEG2K::launch_encode_pcrd((int)ceil((double)codeBlocks /(double)THREADS), THREADS, d_stBuffors, d_outbuf, maxOutLength, d_infos, codeBlocks, targetSize, mem_mg);
 	}
 
 	cudaEventRecord(end, 0);
@@ -186,7 +186,7 @@ float gpuDecode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count)
 	}
 
 	d_stBuffors = (GPU_JPEG2K::CoefficientState *)mem_mg->alloc->dev(sizeof(GPU_JPEG2K::CoefficientState) * magconOffset, mem_mg->ctx);
-	CHECK_ERRORS(cudaMemset((void *) d_stBuffors, 0, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset));
+	cudaMemset((void *) d_stBuffors, 0, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset);
 
 	cuda_memcpy_htd(h_infos, d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 
@@ -196,7 +196,7 @@ float gpuDecode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count)
 //
 //	cudaEventRecord(start, 0);
 
-	CHECK_ERRORS(GPU_JPEG2K::launch_decode((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_inbuf, maxOutLength, d_infos, codeBlocks));
+	GPU_JPEG2K::launch_decode((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_inbuf, maxOutLength, d_infos, codeBlocks);
 
 //	cudaEventRecord(end, 0);
 
@@ -244,16 +244,16 @@ void convert_to_task(EntropyCodingTaskInfo &task, const type_codeblock &cblk)
 
 void extract_cblks(type_tile *tile, std::list<type_codeblock *> &out_cblks)
 {
-	for(int i = 0; i < tile->parent_img->num_components; i++)
+	for(unsigned int i = 0; i < tile->parent_img->num_components; i++)
 	{
 		type_tile_comp *tile_comp = &(tile->tile_comp[i]);
-		for(int j = 0; j < tile_comp->num_rlvls; j++)
+		for(unsigned int j = 0; j < tile_comp->num_rlvls; j++)
 		{
 			type_res_lvl *res_lvl = &(tile_comp->res_lvls[j]);
-			for(int k = 0; k < res_lvl->num_subbands; k++)
+			for(unsigned int k = 0; k < res_lvl->num_subbands; k++)
 			{
 				type_subband *sb = &(res_lvl->subbands[k]);
-				for(int l = 0; l < sb->num_cblks; l++)
+				for(unsigned int l = 0; l < sb->num_cblks; l++)
 					out_cblks.push_back(&(sb->cblks[l]));
 			}
 		}
@@ -289,7 +289,7 @@ void encode_tasks_serial(type_tile *tile) {
 
 //	printf("%d\n", num_tasks);
 
-	float t = gpuEncode(tasks, mem_mg, num_tasks, coding_params->target_size);
+	gpuEncode(tasks, mem_mg, num_tasks, coding_params->target_size);
 
 //	printf("kernel consumption: %f\n", t);
 
@@ -410,7 +410,7 @@ void decode_tile(type_tile *tile)
 
 //	printf("%d\n", num_tasks);
 
-	float t = gpuDecode(tasks, mem_mg, num_tasks);
+	gpuDecode(tasks, mem_mg, num_tasks);
 
 	ii = cblks.begin();
 

@@ -115,7 +115,6 @@ type_subband *dequantization(type_subband *sb)
 	float convert_factor;
 	int shift_bits;
 	int max_res_lvl;
-	int i;
 
 	mem_mg_t *mem_mg = img->mem_mg;
 
@@ -148,6 +147,7 @@ type_subband *dequantization(type_subband *sb)
 //		printf("%d %d %d\n", sb->num_cblks, tile_comp->cblk_w, tile_comp->cblk_h);
 	int32_t *dst;
 
+	unsigned int i;
 	for (i = 0; i < sb->num_cblks; i++)
 	{
 		type_codeblock *cblk = &(sb->cblks[i]);

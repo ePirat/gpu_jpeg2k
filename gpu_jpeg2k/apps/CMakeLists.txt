@@ -4,11 +4,8 @@ SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../CMake" "${PROJECT_SOURCE_DIR}/..
 FIND_PACKAGE(CUDA)
 FIND_PACKAGE(FreeImage)
 
-#Uncomment next line to enable debugging (for use with cuda-gdb)
-#SET(CUDA_NVCC_FLAGS -g -G --compiler-options -fpermissive)
-SET(CMAKE_CXX_FLAGS "-O3 -g -fno-builtin")
-SET(CMAKE_CC_FLAGS "-O3 -g -fno-builtin")
-SET(CUDA_NVCC_FLAGS -O3 -g -G --compiler-options -fpermissive -arch sm_20 --maxrregcount 64 --ptxas-options=-v)
+SET(CMAKE_CXX_FLAGS "-Wall -O3")
+SET(CMAKE_CC_FLAGS "-Wall -O3")
 SET(CUDA_VERBOSE_BUILD ON)
 
 include_directories(${FREEIMAGE_INCLUDE_PATH})
@@ -20,11 +17,10 @@ find_library(GPUJPEG2K_LIBRARY
 			${PROJECT_SOURCE_DIR}/../build
 )
 
-message(STATUS )
-
 cuda_add_executable(enc_main
 ../print_info/print_info.c
-func.cu
+common.c
+func.c
 list.c
 enc_main.c)
 
@@ -35,7 +31,8 @@ ${GPUJPEG2K_LIBRARY})
 
 cuda_add_executable(dec_main
 ../print_info/print_info.c
-func.cu
+common.c
+func.c
 list.c
 dec_main.c)
 

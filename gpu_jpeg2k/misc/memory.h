@@ -22,11 +22,17 @@ typedef struct {
 	void (*dev)(void *ptr, void *ctx);
 } dealloc_t;
 
+/** Context */
+typedef struct {
+	void *host;
+	void *dev;
+}ctx_t;
+
 /** Memory manager */
 typedef struct {
 	alloc_t *alloc;
 	dealloc_t *dealloc;
-	void *ctx;
+	ctx_t *ctx;
 } mem_mg_t;
 
 #endif /* MEMORY_H_ */

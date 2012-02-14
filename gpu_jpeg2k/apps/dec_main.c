@@ -23,6 +23,10 @@ static void init_mem_mg(mem_mg_t *mem_mg) {
 	mem_mg->dealloc = (dealloc_t *)malloc(sizeof(dealloc_t));
 	mem_mg->dealloc->host = _cuda_h_free;
 	mem_mg->dealloc->dev = _cuda_d_free;
+
+	ctx_t *ctx = (ctx_t *)malloc(sizeof(ctx_t));
+	init_ctx(ctx);
+	mem_mg->ctx = (void *)ctx;
 }
 
 static void init_config(Config *config) {
@@ -111,9 +115,18 @@ int main(int argc, char *argv[]) {
 	Chunk *img_data = read_img(img->in_file);
 	Chunk *blocks, *order;
 
+	long int start_dec;
+	start_dec = start_measure();
+
 	decode(img_data, config, &blocks, &order);
 
+	printf("Decoding time:%d\n", stop_measure(start_dec));
+
 	save_img(blocks, config, img->out_file);
+
+	ctx_t *ctx = ((ctx_t *)config->mem_mg->ctx);
+	deinit_dev_mem(((ctx_m_t *)ctx->dev)->mem);
+	deinit_host_mem(((ctx_m_t *)ctx->host)->mem);
 
 	free(config);
 

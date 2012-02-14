@@ -24,5 +24,5 @@ void write_codestream(type_image *img, Chunk **blocks, Chunk **order) {
 	(*blocks)->length = buffer->bytes_count;
 	*order = *blocks;
 	// TODO
-//	mem_mg->dealloc->host(buffer);
+	mem_mg->dealloc->host(buffer, mem_mg->ctx);
 }

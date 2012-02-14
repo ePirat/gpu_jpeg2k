@@ -5,6 +5,7 @@
  *      Author: miloszc
  */
 
+#include <stdlib.h>
 #include "mct.h"
 #include "../types/image_types.h"
 #include "../klt/klt.h"
@@ -27,7 +28,7 @@ void enc_mct(type_image *img) {
 	} else if (img->use_part2_mct == 1) {
 		if(img->mct_compression_method == 0)
 		{
-			img->mct_data = (type_multiple_component_transformations*)calloc(1, sizeof(type_multiple_component_transformations));
+			img->mct_data = (type_multiple_component_transformations*)malloc(sizeof(type_multiple_component_transformations));
 			encode_klt(img);
 		} else if((img->mct_compression_method == 2))
 		{

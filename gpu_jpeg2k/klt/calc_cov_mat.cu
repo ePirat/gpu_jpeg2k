@@ -17,7 +17,7 @@ void calculate_cov_matrix(type_image *img, type_data** data, type_data* covMatri
 	calculate_covariance_matrix<<<img->num_components, img->num_components>>>(data, covMatrix, img->width*img->height, img->num_components);
 }
 
-static void print_covMat(type_data* covMatrix_d, int n) {
+/*static void print_covMat(type_data* covMatrix_d, int n) {
 	type_data *covMatrix_h = NULL;
 	cuda_h_allocate_mem((void **)&covMatrix_h, n * n * sizeof(type_data));
 	cuda_memcpy_dth(covMatrix_d, covMatrix_h, n * n * sizeof(type_data));
@@ -30,11 +30,11 @@ static void print_covMat(type_data* covMatrix_d, int n) {
 		printf("\n");
 	}
 	cuda_h_free(covMatrix_h);
-}
+}*/
 
 void calculate_cov_matrix_new(type_image *img, type_data** data, type_data* covMatrix_d) {
-	type_data *covMatrix_h = NULL;
-	type_data *h_odata = NULL;
+//	type_data *covMatrix_h = NULL;
+//	type_data *h_odata = NULL;
 	type_data *d_o_data = NULL; /* device reduced output data */
 	int n = img->num_components;
 	int size = img->width * img->height;

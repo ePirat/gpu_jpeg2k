@@ -100,6 +100,16 @@ void init_codeblocks(type_subband *sb) {
 	//	println_end(INFO);
 }
 
+void deinit_codeblocks(type_subband *sb) {
+	uint32_t i;
+	type_codeblock *cblk;
+	type_tile_comp *tile_comp = sb->parent_res_lvl->parent_tile_comp;
+	type_image *img = tile_comp->parent_tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
+
+	mem_mg->dealloc->host(sb->cblks, mem_mg->ctx);
+}
+
 /**
  * @brief Initializes subbands.
  *
@@ -168,6 +178,21 @@ void init_subbands(type_res_lvl *res_lvl) {
 	//	println_end(INFO);
 }
 
+void deinit_subbands(type_res_lvl *res_lvl) {
+	uint8_t i;
+	type_subband *sb;
+	type_tile_comp *tile_comp = res_lvl->parent_tile_comp;
+	type_tile *tile = tile_comp->parent_tile;
+	type_image *img = tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
+
+	for (i = 0; i < res_lvl->num_subbands; i++) {
+		sb = &(res_lvl->subbands[i]);
+		deinit_codeblocks(sb);
+	}
+	mem_mg->dealloc->host(res_lvl->subbands, mem_mg->ctx);
+}
+
 /**
  * @brief To save memory the resolution level with no = 0 is not kept separately. LL subband from the resolution level no = 1 equals resolution level no = 0.
  * @param tile_comp
@@ -230,6 +255,21 @@ void init_resolution_lvls(type_tile_comp *tile_comp) {
 	//	println_end(INFO);
 }
 
+void deinit_resolution_lvls(type_tile_comp *tile_comp) {
+	uint8_t i;
+	type_res_lvl *res_lvl;
+	type_tile *parent_tile = tile_comp->parent_tile;
+	type_image *img = parent_tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
+
+	for (i = 0; i < tile_comp->num_rlvls; i++) {
+		res_lvl = &(tile_comp->res_lvls[i]);
+		deinit_subbands(res_lvl);
+	}
+
+	mem_mg->dealloc->host(tile_comp->res_lvls, mem_mg->ctx);
+}
+
 /**
  * @brief Initializes tile components. Allocates memory for them both on the host and the device.
  *
@@ -269,6 +309,21 @@ void init_tile_comps(type_tile *tile) {
 
 		init_resolution_lvls(tile_comp);
 	}
+}
+
+void deinit_tile_comps(type_tile *tile) {
+	uint16_t i;
+	type_tile_comp *tile_comp;
+	type_image *parent_img = tile->parent_img;
+	mem_mg_t *mem_mg = parent_img->mem_mg;
+
+	for (i = 0; i < parent_img->num_components; i++) {
+		tile_comp = &(tile->tile_comp[i]);
+
+		deinit_resolution_lvls(tile_comp);
+	}
+
+	mem_mg->dealloc->host(tile->tile_comp, mem_mg->ctx);
 }
 
 /**
@@ -321,6 +376,19 @@ void init_tiles(type_image **_img) {
 		init_tile_comps(tile);
 	}
 	//	println_end(INFO);
+}
+
+void deinit_tiles(type_image *img) {
+	mem_mg_t *mem_mg = img->mem_mg;
+
+	uint32_t i = 0;
+	type_tile *tile;
+	for (i = 0; i < img->num_tiles; i++) {
+		tile = &(img->tile[i]);
+		deinit_tile_comps(tile);
+	}
+
+	mem_mg->dealloc->host(img->tile, mem_mg->ctx);
 }
 
 /**

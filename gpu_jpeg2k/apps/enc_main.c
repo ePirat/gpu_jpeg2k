@@ -31,21 +31,6 @@ static void _FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
    printf(" ***\n");
 }
 
-static void init_mem(mem_t *mem) {
-	// 512 MB = 536870912
-	cuda_d_allocate_mem(&(mem->p), 536870912);
-	mem->size = 536870912;
-	mem->alloc_size = 0;
-}
-
-static void init_ctx(ctx_t *ctx) {
-	ctx->max = 0;
-	ctx->head = NULL;
-	mem_t *mem = (mem_t *)malloc(sizeof(mem_t));
-	init_mem(mem);
-	ctx->mem = mem;
-}
-
 static void init_mem_mg(mem_mg_t *mem_mg) {
 	mem_mg->alloc = (alloc_t *)malloc(sizeof(alloc_t));
 	mem_mg->alloc->host = _cuda_h_allocate_mem;
@@ -124,7 +109,7 @@ static void **read_img(const char *in_file, Config *config) {
 		mem_mg_t *mem_mg = config->mem_mg;
 		int c;
 		for(c = 0; c < config->num_comp; ++c) {
-			img_data_h[c] = (type_data *)mem_mg->alloc->host(sizeof(type_data) * config->img_w * config->img_h, mem_mg->ctx);
+			img_data_h[c] = (type_data *)malloc(sizeof(type_data) * config->img_w * config->img_h);
 		}
 		img_data_d = (type_data **)malloc(sizeof(type_data *) * config->num_comp);
 		for(c = 0; c < config->num_comp; ++c) {
@@ -140,7 +125,7 @@ static void **read_img(const char *in_file, Config *config) {
 				}
 			}
 			cuda_memcpy_htd(img_data_h[c], img_data_d[c], config->img_w * config->img_h * sizeof(type_data));
-			cuda_h_free(img_data_h[c]);
+			free(img_data_h[c]);
 		}
 		free(img_data_h);
 	}
@@ -189,12 +174,27 @@ int main(int argc, char *argv[]) {
 
 	Chunk *blocks, *order;
 
+	long int start_enc;
+	start_enc = start_measure();
+
 	encode(img_data, config, &blocks, &order);
+
+	printf("Encoding time:%d\n", stop_measure(start_enc));
 
 	save_img(img->out_file, blocks);
 
-//	printf("unallocated size %lld\n", actual_size(((ctx_t *)config->mem_mg->ctx)->head));
-//	printf("max used memory in bytes %lld\n", ((ctx_t *)config->mem_mg->ctx)->max);
+	mem_mg_t *mem_mg = config->mem_mg;
+	mem_mg->dealloc->host(((Chunk *)blocks)->data, mem_mg->ctx);
+	mem_mg->dealloc->host(blocks, mem_mg->ctx);
+
+	ctx_t *ctx = ((ctx_t *)mem_mg->ctx);
+	deinit_dev_mem(((ctx_m_t *)ctx->dev)->mem);
+	deinit_host_mem(((ctx_m_t *)ctx->host)->mem);
+
+//	printf("host memory leaks %lld\n", actual_size(((ctx_m_t *)ctx->host)->head));
+//	printf("dev memory leaks %lld\n", actual_size(((ctx_m_t *)ctx->dev)->head));
+//	printf("host max used memory %lld\n", ((ctx_m_t *)ctx->host)->max);
+//	printf("dev max used memory %lld\n", ((ctx_m_t *)ctx->dev)->max);
 
 	free(config);
 

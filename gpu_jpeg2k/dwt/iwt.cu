@@ -37,8 +37,8 @@ const float k = 1.230174104914f;	// 1.230174104914
  *
  * @{
  */
-const float p53 = 0.5f;
-const float u53 = -0.25f;
+//const float p53 = 0.5f;
+//const float u53 = -0.25f;
 /** @} */
 
 // Template device functions repeated in fwt.cu, because NVCC doesnt support __devices__ functions on different files than kernels.

@@ -18,7 +18,7 @@ typedef struct {
 	void *head;
 	size_t max;
 	mem_t *mem;
-} ctx_t;
+} ctx_m_t;
 
 void _cuda_d_free(void *data, void *ctx);
 
