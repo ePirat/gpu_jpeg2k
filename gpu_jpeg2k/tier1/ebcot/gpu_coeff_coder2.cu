@@ -969,6 +969,7 @@ void launch_encode(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, 
 	}
 
 	mem_mg->dealloc->dev(mqstates, mem_mg->ctx);
+	mem_mg->dealloc->dev(cxds, mem_mg->ctx);
 }
 
 void _launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, int maxThreadBufforLength, CodeBlockAdditionalInfo *infos, int codeBlocks, const int maxMQStatesPerCodeBlock, PcrdCodeblock *pcrdCodeblocks, PcrdCodeblockInfo *pcrdCodeblockInfos, mem_mg_t *mem_mg) {

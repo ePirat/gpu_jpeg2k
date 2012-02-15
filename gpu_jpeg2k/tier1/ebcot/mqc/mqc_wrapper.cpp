@@ -26,7 +26,8 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 	// Determine cxd blocks count
 	int cxd_block_count = codeBlocks;
 	// Allocate CPU memory for cxd blocks
-	struct cxd_block* cxd_blocks = new struct cxd_block[cxd_block_count];
+//	struct cxd_block* cxd_blocks = new struct cxd_block[cxd_block_count];
+	struct cxd_block* cxd_blocks = (struct cxd_block *)mem_mg->alloc->host(sizeof(struct cxd_block) * cxd_block_count, mem_mg->ctx);
 	// Fill CPU memory with cxd blocks
 	int cxd_index = 0;
 	int byte_index = 0;
@@ -47,8 +48,7 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 	d_cxd_blocks = (struct cxd_block *)mem_mg->alloc->dev(cxd_block_count * sizeof(struct cxd_block), mem_mg->ctx);
 
 	// Fill GPU memory with cxd blocks
-	cudaMemcpy((void*) d_cxd_blocks, (void*) cxd_blocks, cxd_block_count * sizeof(struct cxd_block),
-			cudaMemcpyHostToDevice);
+	cuda_memcpy_htd((void*) cxd_blocks, (void*) d_cxd_blocks, cxd_block_count * sizeof(struct cxd_block));
 
 	// Allocate GPU memory for output bytes
 	unsigned char* d_bytes = (unsigned char *)mem_mg->alloc->dev(1 + byte_index * sizeof(unsigned char), mem_mg->ctx);
@@ -65,55 +65,36 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 //    mqc_gpu_init(param);
 	mqc_gpu_develop_init(param);
 
-	// Make runs
-	double * duration = new double[1];
-	bool correct = true;
-	for (int run_index = 0; run_index < 1; run_index++) {
-
-		struct timer_state timer_state;
-		timer_reset(&timer_state);
-		timer_start(&timer_state);
-
-		// Encode on GPU
+	// Encode on GPU
 //        mqc_gpu_encode(d_cxd_blocks,cxd_block_count,d_cxds,d_bytes);
-		mqc_gpu_develop_encode(d_cxd_blocks, cxd_block_count, d_cxds, d_bytes);
-
-		duration[run_index] = timer_stop(&timer_state);
+	mqc_gpu_develop_encode(d_cxd_blocks, cxd_block_count, d_cxds, d_bytes);
 
 //		printf("mqc %f\n", duration[run_index]);
 
-		// TODO: Check correction for carry bit
-		// It seems like it is not needed but who nows, check it for sure
+	// TODO: Check correction for carry bit
+	// It seems like it is not needed but who nows, check it for sure
 
-		// Allocate CPU memory for output bytes
-		unsigned char* bytes = new unsigned char[byte_index];
-		// Copy output bytes to CPU memory
-		cuerr = cudaMemcpy((void*) bytes, (void*) d_bytes, byte_index * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-		if (cuerr != cudaSuccess) {
-			std::cout << "Can't memcpy for output bytes: " << cudaGetErrorString(cuerr) << std::endl;
-			return;
-		}
-		// Copy cxd blocks to CPU memory
-		cuerr = cudaMemcpy((void*) cxd_blocks, (void*) d_cxd_blocks, cxd_block_count * sizeof(struct cxd_block),
-				cudaMemcpyDeviceToHost);
-		if (cuerr != cudaSuccess) {
-			std::cout << "Can't memcpy for output d_cxd_blocks: " << cudaGetErrorString(cuerr) << std::endl;
-			return;
-		}
+	// Allocate CPU memory for output bytes
+//		unsigned char* bytes = new unsigned char[byte_index];
+	unsigned char* bytes = (unsigned char *)mem_mg->alloc->host(sizeof(unsigned char) * byte_index, mem_mg->ctx);
+	// Copy output bytes to CPU memory
+	cuda_memcpy_dth(d_bytes, bytes, byte_index * sizeof(unsigned char));
+	// Copy cxd blocks to CPU memory
+	cuda_memcpy_dth(d_cxd_blocks, cxd_blocks, cxd_block_count * sizeof(struct cxd_block));
 
-		// Check output bytes
-		int cblk_index;
-		for (cblk_index = 0; cblk_index < codeBlocks; cblk_index++) {
-			EntropyCodingTaskInfo * cblk = &infos[cblk_index];
-			struct cxd_block* cxd_block = &cxd_blocks[cblk_index];
-			cblk->length = cxd_block->byte_count > 0 ? cxd_block->byte_count : 0;
-			cblk->codeStream = (unsigned char *)mem_mg->alloc->host(sizeof(unsigned char) * cxd_block->byte_count, mem_mg->ctx);
-			cuda_memcpy_hth(&bytes[cxd_block->byte_begin], cblk->codeStream, sizeof(unsigned char) * cxd_block->byte_count);
-		}
-
-		// Free CPU Memory
-//		delete[] bytes;
+	// Check output bytes
+	int cblk_index;
+	for (cblk_index = 0; cblk_index < codeBlocks; cblk_index++) {
+		EntropyCodingTaskInfo * cblk = &infos[cblk_index];
+		struct cxd_block* cxd_block = &cxd_blocks[cblk_index];
+		cblk->length = cxd_block->byte_count > 0 ? cxd_block->byte_count : 0;
+		cblk->codeStream = (unsigned char *)mem_mg->alloc->host(sizeof(unsigned char) * cxd_block->byte_count, mem_mg->ctx);
+		cuda_memcpy_hth(&bytes[cxd_block->byte_begin], cblk->codeStream, sizeof(unsigned char) * cxd_block->byte_count);
 	}
+
+	// Free CPU Memory
+//		delete[] bytes;
+	mem_mg->dealloc->host(bytes, mem_mg->ctx);
 
 	// Deinit encoder
 	//    mqc_gpu_deinit();
@@ -124,7 +105,8 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 	mem_mg->dealloc->dev((void*) d_cxd_blocks, mem_mg->ctx);
 
 	// Free CPU memory
-	delete[] cxd_blocks;
+//	delete[] cxd_blocks;
+	mem_mg->dealloc->host(cxd_blocks, mem_mg->ctx);
 }
 
 void mqc_gpu_encode_test() {

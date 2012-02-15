@@ -271,6 +271,7 @@ void launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuff
 
 	mem_mg->dealloc->host(pcrdCodeblocks, mem_mg->ctx);
 	mem_mg->dealloc->host(pcrdCodeblockInfos, mem_mg->ctx);
+	mem_mg->dealloc->dev(dSlopeMax, mem_mg->ctx);
 
 //	launch_pcrd(infos, codeBlocks, mqstates, maxMQStatesPerCodeBlock, pcrd);
 }

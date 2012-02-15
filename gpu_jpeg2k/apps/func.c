@@ -28,8 +28,8 @@ void _cuda_h_free(void *data, void *ctx) {
 	ctx_m_t *ctx_ = (ctx_m_t *)((ctx_t *)ctx)->host;
 //	printf("f %x %lld\n", (uint64_t)data, actual_size((t_node *)ctx_->head));
 
-//	t_node *tmp = find((t_node **)&(ctx_->head), (uint64_t)data);
-//	remove_node((t_node **)&(ctx_->head), tmp);
+	t_node *tmp = find((t_node **)&(ctx_->head), (uint64_t)data);
+	remove_node((t_node **)&(ctx_->head), tmp);
 
 //	cuda_h_free(data);
 }
@@ -46,12 +46,12 @@ void *_cuda_h_allocate_mem(size_t mem_size, void *ctx)
 		perror("Insufficient memory space\n");
 		return NULL;
 	}
-//	insert((t_node **)&(ctx_->head), create((uint64_t)data, mem_size));
+	insert((t_node **)&(ctx_->head), create((uint64_t)data, mem_size));
 
-//	size_t size = actual_size((t_node *)ctx_->head);
-//	if(ctx_->max < size) {
-//		ctx_->max = size;
-//	}
+	size_t size = actual_size((t_node *)ctx_->head);
+	if(ctx_->max < size) {
+		ctx_->max = size;
+	}
 
 //	printf("a %x %lld %lld\n", (uint64_t)data, mem_size, actual_size((t_node *)ctx_->head));
 
