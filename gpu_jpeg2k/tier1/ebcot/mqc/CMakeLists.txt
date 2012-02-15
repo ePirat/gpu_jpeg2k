@@ -1,6 +1,15 @@
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
 
-find_package(PkgConfig REQUIRED)
+SET(JPEG2K_SRCS 
+${JPEG2K_SRCS}
+${CMAKE_CURRENT_SOURCE_DIR}/timer.c
+${CMAKE_CURRENT_SOURCE_DIR}/mqc_data.c
+${CMAKE_CURRENT_SOURCE_DIR}/mqc_opj_helper.c
+${CMAKE_CURRENT_SOURCE_DIR}/mqc_configuration.cu
+${CMAKE_CURRENT_SOURCE_DIR}/mqc_develop.cu
+${CMAKE_CURRENT_SOURCE_DIR}/mqc_wrapper.cpp 
+PARENT_SCOPE 
+)
 
 cuda_add_library(mqc
 	timer.c 

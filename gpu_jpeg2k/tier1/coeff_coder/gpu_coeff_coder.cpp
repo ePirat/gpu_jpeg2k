@@ -55,6 +55,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 	int codeBlocks = count;
 	int maxOutLength = MAX_CODESTREAM_SIZE;
 
+//	long int start_bebcot = start_measure();
 	int n = 0;
 	for(int i = 0; i < codeBlocks; i++)
 		n += infos[i].width * infos[i].height;
@@ -87,12 +88,14 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 
 	cuda_memcpy_htd(h_infos, d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 
-	cudaEvent_t start, end;
-	cudaEventCreate(&start);
-	cudaEventCreate(&end);
+//	cudaEvent_t start, end;
+//	cudaEventCreate(&start);
+//	cudaEventCreate(&end);
 
-	cudaEventRecord(start, 0);
+//	cudaEventRecord(start, 0);
+//	printf("before launch encode: %d\n", stop_measure(start_bebcot));
 
+//	long int start_ebcot = start_measure();
 	if(targetSize == 0)
 	{
 		//printf("No pcrd\n");
@@ -103,11 +106,18 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 		//printf("Pcrd\n");
 		GPU_JPEG2K::launch_encode_pcrd((int)ceil((double)codeBlocks /(double)THREADS), THREADS, d_stBuffors, d_outbuf, maxOutLength, d_infos, codeBlocks, targetSize, mem_mg);
 	}
+	cudaThreadSynchronize();
+//	printf("launch encode: %d\n", stop_measure(start_ebcot));
+	CHECK_ERRORS();
 
-	cudaEventRecord(end, 0);
+//	cudaEventRecord(end, 0);
+//	long int start_aebcot = start_measure();
 
+//	long int start_copy = start_measure();
 	cuda_memcpy_dth(d_infos, h_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
+//	printf("copy: %d\n", stop_measure(start_copy));
 
+//	long int start_cblk = start_measure();
 	for(int i = 0; i < codeBlocks; i++)
 	{
 		infos[i].significantBits = h_infos[i].significantBits;
@@ -128,6 +138,10 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 			infos[i].codeStream = NULL;
 		}
 	}
+//	printf("cblk: %d\n", stop_measure(start_cblk));
+
+
+//	long int start_free = start_measure();
 
 //	cuda_d_free(d_outbuf);
 	mem_mg->dealloc->dev(d_outbuf, mem_mg->ctx);
@@ -139,9 +153,13 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 //	free(h_infos);
 	mem_mg->dealloc->host(h_infos, mem_mg->ctx);
 
+//	printf("free: %d\n", stop_measure(start_free));
+
 	float elapsed = 0.0f;
-	cudaEventElapsedTime(&elapsed, start, end);
+//	cudaEventElapsedTime(&elapsed, start, end);
 	
+//	printf("after launch encode: %d\n", stop_measure(start_aebcot));
+
 	return elapsed;
 }
 
@@ -288,9 +306,7 @@ void encode_tasks_serial(type_tile *tile) {
 		convert_to_task(tasks[num_tasks++], *(*ii));
 
 //	printf("%d\n", num_tasks);
-
 	gpuEncode(tasks, mem_mg, num_tasks, coding_params->target_size);
-
 //	printf("kernel consumption: %f\n", t);
 
 	ii = cblks.begin();

@@ -34,7 +34,9 @@ SET(JPEG2K_SRCS
 print_info/print_info.c
 gpu_jpeg2k.c)
 
-add_subdirectory(tier1/coeff_coder)
+add_subdirectory(tier1/ebcot)
+add_subdirectory(tier1/ebcot/mqc)
+add_subdirectory(tier1/ebcot/mqc/library/openjpeg)
 add_subdirectory(config)
 add_subdirectory(dwt)
 add_subdirectory(preprocessing)

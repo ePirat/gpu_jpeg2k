@@ -28,6 +28,7 @@ void cuda_d_free(void *data)
 
 void cuda_h_free(void *data) {
 	cudaFreeHost(data);
+//	free(data);
 //	checkCUDAError("cuda_h_free");
 }
 
@@ -61,6 +62,7 @@ void cuda_h_allocate_mem(void **data, uint64_t mem_size)
 		exit(0);
 	}*/
 	cudaHostAlloc(data, mem_size, cudaHostAllocMapped);
+//	*data = (void *)malloc(mem_size);
 
 //	println_var(INFO, "allocating: %i [kB]\n", mem_size/1024);
 	/*cudaHostAlloc(data, mem_size, cudaHostAllocPortable);*/

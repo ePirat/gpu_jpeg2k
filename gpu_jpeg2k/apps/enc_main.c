@@ -109,7 +109,7 @@ static void **read_img(const char *in_file, Config *config) {
 		mem_mg_t *mem_mg = config->mem_mg;
 		int c;
 		for(c = 0; c < config->num_comp; ++c) {
-			img_data_h[c] = (type_data *)malloc(sizeof(type_data) * config->img_w * config->img_h);
+			cuda_h_allocate_mem((void **)&img_data_h[c], sizeof(type_data) * config->img_w * config->img_h);
 		}
 		img_data_d = (type_data **)malloc(sizeof(type_data *) * config->num_comp);
 		for(c = 0; c < config->num_comp; ++c) {
@@ -125,7 +125,7 @@ static void **read_img(const char *in_file, Config *config) {
 				}
 			}
 			cuda_memcpy_htd(img_data_h[c], img_data_d[c], config->img_w * config->img_h * sizeof(type_data));
-			free(img_data_h[c]);
+			cuda_h_free(img_data_h[c]);
 		}
 		free(img_data_h);
 	}
@@ -178,8 +178,7 @@ int main(int argc, char *argv[]) {
 	start_enc = start_measure();
 
 	encode(img_data, config, &blocks, &order);
-
-	printf("Encoding time:%d\n", stop_measure(start_enc));
+	printf("Encoding time: %ld\n", stop_measure(start_enc));
 
 	save_img(img->out_file, blocks);
 
