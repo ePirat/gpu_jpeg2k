@@ -130,7 +130,7 @@ __global__ void g_truncateSize(int codeBlocks, int maxStatesPerCodeBlock, CodeBl
 		sizes[threadId] = size;
 }
 
-int truncateSize(int codeBlocks, int maxStatesPerCodeBlock, CodeBlockAdditionalInfo *infos, PcrdCodeblock *pcrdCodeblocks, PcrdCodeblockInfo *pcrdCodeblockInfos, float lambda)
+int truncateSize(int codeBlocks, int maxStatesPerCodeBlock, CodeBlockAdditionalInfo *infos, PcrdCodeblock *pcrdCodeblocks, PcrdCodeblockInfo *pcrdCodeblockInfos, float lambda, mem_mg_t *mem_mg)
 {
 	int threads = (codeBlocks + CBLKS_PER_THREAD - 1) / CBLKS_PER_THREAD;
 	int blocks = (threads + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
@@ -138,9 +138,9 @@ int truncateSize(int codeBlocks, int maxStatesPerCodeBlock, CodeBlockAdditionalI
 
 	int *sizes_h, *sizes_d;
 
-	cuda_d_allocate_mem((void **)&sizes_d, sizeof(int) * threads);
+	sizes_d = (int *)mem_mg->alloc->dev(sizeof(int) * threads, mem_mg->ctx);
 	cuda_d_memset(sizes_d, 0, sizeof(int) * threads);
-	cuda_h_allocate_mem((void **)&sizes_h, sizeof(int) * threads);
+	sizes_h = (int *)mem_mg->alloc->host(sizeof(int) * threads, mem_mg->ctx);
 
 //	printf("threads:%d blocks:%d\n", threads, blocks);
 
@@ -165,15 +165,15 @@ int truncateSize(int codeBlocks, int maxStatesPerCodeBlock, CodeBlockAdditionalI
 		size += sizes_h[i];
 	}
 
-	cuda_d_free(sizes_d);
-	cuda_h_free(sizes_h);
+	mem_mg->dealloc->dev(sizes_d, mem_mg->ctx);
+	mem_mg->dealloc->host(sizes_h, mem_mg->ctx);
 
 	return size;
 }
 
 #define ALLOWED_DIFF 400.0f
 
-void launch_pcrd(int maxStatesPerCodeBlock, int targetSize, float slopeMax, int codeBlocks, CodeBlockAdditionalInfo *infos, PcrdCodeblock *pcrdCodeblocks, PcrdCodeblockInfo *pcrdCodeblockInfos)
+void launch_pcrd(int maxStatesPerCodeBlock, int targetSize, float slopeMax, int codeBlocks, CodeBlockAdditionalInfo *infos, PcrdCodeblock *pcrdCodeblocks, PcrdCodeblockInfo *pcrdCodeblockInfos, mem_mg_t *mem_mg)
 {
 	float lambdaMin = -1.0f;
 	float lambdaMax = slopeMax * 2.0f;
@@ -185,7 +185,7 @@ void launch_pcrd(int maxStatesPerCodeBlock, int targetSize, float slopeMax, int 
 //	printf("over head:%d\n", overHead);
 //	overHead = 0;
 
-	minSize = overHead + truncateSize(codeBlocks, maxStatesPerCodeBlock, infos, pcrdCodeblocks, pcrdCodeblockInfos, lambdaMax);
+	minSize = overHead + truncateSize(codeBlocks, maxStatesPerCodeBlock, infos, pcrdCodeblocks, pcrdCodeblockInfos, lambdaMax, mem_mg);
 
 //	printf("minSize:%d\n", minSize);
 
@@ -195,7 +195,7 @@ void launch_pcrd(int maxStatesPerCodeBlock, int targetSize, float slopeMax, int 
 		return;
 	}
 
-	maxSize = overHead + truncateSize(codeBlocks, maxStatesPerCodeBlock, infos, pcrdCodeblocks, pcrdCodeblockInfos, lambdaMin);
+	maxSize = overHead + truncateSize(codeBlocks, maxStatesPerCodeBlock, infos, pcrdCodeblocks, pcrdCodeblockInfos, lambdaMin, mem_mg);
 
 //	printf("maxSize:%d\n", maxSize);
 
@@ -211,7 +211,7 @@ void launch_pcrd(int maxStatesPerCodeBlock, int targetSize, float slopeMax, int 
 	do {
 		lambdaMid = 0.5f * (lambdaMin + lambdaMax);
 
-		size = overHead + truncateSize(codeBlocks, maxStatesPerCodeBlock, infos, pcrdCodeblocks, pcrdCodeblockInfos, lambdaMid);
+		size = overHead + truncateSize(codeBlocks, maxStatesPerCodeBlock, infos, pcrdCodeblocks, pcrdCodeblockInfos, lambdaMid, mem_mg);
 
 //		printf("size:%d\n", size);
 
@@ -236,28 +236,24 @@ void launch_pcrd(int maxStatesPerCodeBlock, int targetSize, float slopeMax, int 
 	} while(countRefine < 20 && iterations < 50);
 }
 
-void launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, int maxThreadBufforLength, CodeBlockAdditionalInfo *infos, int codeBlocks, int targetSize)
+void launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, int maxThreadBufforLength, CodeBlockAdditionalInfo *infos, int codeBlocks, int targetSize, mem_mg_t *mem_mg)
 {
 	const int maxMQStatesPerCodeBlock = (MAX_MAG_BITS - 1) * 3 + 1;
 
-	PcrdCodeblockInfo *pcrdCodeblockInfos;
-	cuda_d_allocate_mem((void **) &pcrdCodeblockInfos, sizeof(PcrdCodeblockInfo) * codeBlocks);
+	PcrdCodeblockInfo *pcrdCodeblockInfos = (PcrdCodeblockInfo *)mem_mg->alloc->dev(sizeof(PcrdCodeblockInfo) * codeBlocks, mem_mg->ctx);
 
-	PcrdCodeblock *pcrdCodeblocks;
-	cuda_d_allocate_mem((void **) &pcrdCodeblocks, sizeof(PcrdCodeblock) * codeBlocks * maxMQStatesPerCodeBlock);
+	PcrdCodeblock *pcrdCodeblocks = (PcrdCodeblock *)mem_mg->alloc->dev(sizeof(PcrdCodeblock) * codeBlocks * maxMQStatesPerCodeBlock, mem_mg->ctx);
 	cuda_d_memset((void *)pcrdCodeblocks, 0, sizeof(PcrdCodeblock) * codeBlocks * maxMQStatesPerCodeBlock);
 
-	_launch_encode_pcrd(gridDim, blockDim, coeffBuffors, maxThreadBufforLength, infos, codeBlocks, maxMQStatesPerCodeBlock, pcrdCodeblocks, pcrdCodeblockInfos);
+	_launch_encode_pcrd(gridDim, blockDim, coeffBuffors, maxThreadBufforLength, infos, codeBlocks, maxMQStatesPerCodeBlock, pcrdCodeblocks, pcrdCodeblockInfos, mem_mg);
 
-	float *dSlopeMax;
-	cuda_d_allocate_mem((void**)&dSlopeMax, sizeof(float));
+	float *dSlopeMax = (float *)mem_mg->alloc->dev(sizeof(float), mem_mg->ctx);
 	cuda_d_memset((void *)dSlopeMax, 0, sizeof(float));
 
 	g_slopeCalculation<<<(int) ceil(codeBlocks / 512.0f), 512>>>(codeBlocks, maxMQStatesPerCodeBlock, pcrdCodeblocks, pcrdCodeblockInfos, infos, dSlopeMax);
 
 	//TODO debug
-	PcrdCodeblockInfo *pcrdCodeblockInfos_h;
-	pcrdCodeblockInfos_h = (PcrdCodeblockInfo *) malloc(sizeof(PcrdCodeblockInfo) * codeBlocks);
+	PcrdCodeblockInfo *pcrdCodeblockInfos_h = (PcrdCodeblockInfo *)mem_mg->alloc->host(sizeof(PcrdCodeblockInfo) * codeBlocks, mem_mg->ctx);
 	cuda_memcpy_dth(pcrdCodeblockInfos, pcrdCodeblockInfos_h, sizeof(PcrdCodeblockInfo) * codeBlocks);
 
 	/*for(int i = 0; i < codeBlocks; ++i)
@@ -271,10 +267,10 @@ void launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuff
 	//TODO
 //	int targetSize = 380;
 
-	launch_pcrd(maxMQStatesPerCodeBlock, targetSize, slopeMax, codeBlocks, infos, pcrdCodeblocks, pcrdCodeblockInfos);
+	launch_pcrd(maxMQStatesPerCodeBlock, targetSize, slopeMax, codeBlocks, infos, pcrdCodeblocks, pcrdCodeblockInfos, mem_mg);
 
-	cuda_d_free(pcrdCodeblocks);
-	cuda_d_free(pcrdCodeblockInfos);
+	mem_mg->dealloc->host(pcrdCodeblocks, mem_mg->ctx);
+	mem_mg->dealloc->host(pcrdCodeblockInfos, mem_mg->ctx);
 
 //	launch_pcrd(infos, codeBlocks, mqstates, maxMQStatesPerCodeBlock, pcrd);
 }

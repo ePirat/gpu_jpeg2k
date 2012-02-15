@@ -242,11 +242,9 @@ void launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuff
 {
 	const int maxMQStatesPerCodeBlock = (MAX_MAG_BITS - 1) * 3 + 1;
 
-	PcrdCodeblockInfo *pcrdCodeblockInfos;
-	pcrdCodeblockInfos = (PcrdCodeblockInfo *)mem_mg->alloc->dev(sizeof(PcrdCodeblockInfo) * codeBlocks, mem_mg->ctx);
+	PcrdCodeblockInfo *pcrdCodeblockInfos = (PcrdCodeblockInfo *)mem_mg->alloc->dev(sizeof(PcrdCodeblockInfo) * codeBlocks, mem_mg->ctx);
 
-	PcrdCodeblock *pcrdCodeblocks;
-	pcrdCodeblocks = (PcrdCodeblock *)mem_mg->alloc->dev(sizeof(PcrdCodeblock) * codeBlocks * maxMQStatesPerCodeBlock, mem_mg->ctx);
+	PcrdCodeblock *pcrdCodeblocks = (PcrdCodeblock *)mem_mg->alloc->dev(sizeof(PcrdCodeblock) * codeBlocks * maxMQStatesPerCodeBlock, mem_mg->ctx);
 	cuda_d_memset((void *)pcrdCodeblocks, 0, sizeof(PcrdCodeblock) * codeBlocks * maxMQStatesPerCodeBlock);
 
 	_launch_encode_pcrd(gridDim, blockDim, coeffBuffors, outbuf, maxThreadBufforLength, infos, codeBlocks, maxMQStatesPerCodeBlock, pcrdCodeblocks, pcrdCodeblockInfos, mem_mg);

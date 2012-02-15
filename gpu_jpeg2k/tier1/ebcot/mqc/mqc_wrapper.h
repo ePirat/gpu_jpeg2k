@@ -10,8 +10,9 @@
 
 #include "../gpu_coder.h"
 #include "../gpu_coeff_coder2.cuh"
+#include "../../../misc/memory.h"
 
 void mqc_gpu_encode(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* h_infos, int codeBlocks,
-		unsigned char *d_outbuf, int maxOutLength);
+		unsigned char *d_outbuf, int maxOutLength, mem_mg_t *mem_mg);
 
 #endif /* MQC_WRAPPER_H_ */

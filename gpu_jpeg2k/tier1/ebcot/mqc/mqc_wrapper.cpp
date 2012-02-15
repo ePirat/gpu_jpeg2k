@@ -15,10 +15,11 @@
 extern "C" {
 #include "timer.h"
 #include "mqc_data.h"
+#include "../../../misc/memory_management.cuh"
 }
 
 static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* mqc_data, int codeBlocks,
-		unsigned char* d_cxds, int maxOutLength, const char* param = 0, const char* name_suffix = 0) {
+		unsigned char* d_cxds, int maxOutLength, mem_mg_t *mem_mg, const char* param = 0, const char* name_suffix = 0) {
 	// Initialize CUDA
 	cudaError cuerr = cudaSuccess;
 
@@ -43,22 +44,14 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 
 	// Allocate GPU memory for cxd blocks
 	struct cxd_block* d_cxd_blocks;
-	cuerr = cudaMalloc((void**) &d_cxd_blocks, cxd_block_count * sizeof(struct cxd_block));
-	if (cuerr != cudaSuccess) {
-		std::cerr << "Can't allocate device memory for cxd blocks: " << cudaGetErrorString(cuerr) << std::endl;
-		return;
-	}
+	d_cxd_blocks = (struct cxd_block *)mem_mg->alloc->dev(cxd_block_count * sizeof(struct cxd_block), mem_mg->ctx);
+
 	// Fill GPU memory with cxd blocks
 	cudaMemcpy((void*) d_cxd_blocks, (void*) cxd_blocks, cxd_block_count * sizeof(struct cxd_block),
 			cudaMemcpyHostToDevice);
 
 	// Allocate GPU memory for output bytes
-	unsigned char* d_bytes;
-	cuerr = cudaMalloc((void**) &d_bytes, 1 + byte_index * sizeof(unsigned char));
-	if (cuerr != cudaSuccess) {
-		std::cerr << "Can't allocate device memory for output bytes: " << cudaGetErrorString(cuerr) << std::endl;
-		return;
-	}
+	unsigned char* d_bytes = (unsigned char *)mem_mg->alloc->dev(1 + byte_index * sizeof(unsigned char), mem_mg->ctx);
 
 	// Zero memory and move pointer by one (encoder access bp-1 so we must have that position)
 	cuerr = cudaMemset((void*) d_bytes, 0, 1 + byte_index * sizeof(unsigned char));
@@ -87,7 +80,7 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 
 		duration[run_index] = timer_stop(&timer_state);
 
-		printf("mqc %f\n", duration[run_index]);
+//		printf("mqc %f\n", duration[run_index]);
 
 		// TODO: Check correction for carry bit
 		// It seems like it is not needed but who nows, check it for sure
@@ -114,8 +107,8 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 			EntropyCodingTaskInfo * cblk = &infos[cblk_index];
 			struct cxd_block* cxd_block = &cxd_blocks[cblk_index];
 			cblk->length = cxd_block->byte_count > 0 ? cxd_block->byte_count : 0;
-			cblk->codeStream = (unsigned char *)malloc(sizeof(unsigned char) * cxd_block->byte_count);
-			memcpy(cblk->codeStream, &bytes[cxd_block->byte_begin], sizeof(unsigned char) * cxd_block->byte_count);
+			cblk->codeStream = (unsigned char *)mem_mg->alloc->host(sizeof(unsigned char) * cxd_block->byte_count, mem_mg->ctx);
+			cuda_memcpy_hth(&bytes[cxd_block->byte_begin], cblk->codeStream, sizeof(unsigned char) * cxd_block->byte_count);
 		}
 
 		// Free CPU Memory
@@ -127,8 +120,8 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 	mqc_gpu_develop_deinit();
 
 	// Free GPU memory
-	cudaFree((void*) --d_bytes);
-	cudaFree((void*) d_cxd_blocks);
+	mem_mg->dealloc->dev((void*) --d_bytes, mem_mg->ctx);
+	mem_mg->dealloc->dev((void*) d_cxd_blocks, mem_mg->ctx);
 
 	// Free CPU memory
 	delete[] cxd_blocks;
@@ -193,7 +186,8 @@ void mqc_gpu_encode_test() {
 
     EntropyCodingTaskInfo *infos = (EntropyCodingTaskInfo *) malloc(sizeof(EntropyCodingTaskInfo) * codeBlocks);
 
-	mqc_gpu_encode_(infos, h_infos, codeBlocks, d_cxds, maxOutLength);
+    mem_mg_t *mem_mg;
+	mqc_gpu_encode_(infos, h_infos, codeBlocks, d_cxds, maxOutLength, mem_mg);
 
 	// Check output bytes
 	int cblk_index;
@@ -228,7 +222,7 @@ void mqc_gpu_encode_test() {
 }
 
 void mqc_gpu_encode(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* h_infos, int codeBlocks,
-		unsigned char *d_cxd_pairs, int maxOutLength) {
+		unsigned char *d_cxd_pairs, int maxOutLength, mem_mg_t *mem_mg) {
 // Initialize CUDA
 	cudaError cuerr = cudaSuccess;
 
@@ -264,7 +258,7 @@ void mqc_gpu_encode(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* h_inf
 		}
 	}*/
 
-	mqc_gpu_encode_(infos, h_infos, codeBlocks, /*d_cxds*/d_cxd_pairs, maxOutLength);
+	mqc_gpu_encode_(infos, h_infos, codeBlocks, /*d_cxds*/d_cxd_pairs, maxOutLength, mem_mg);
 //	mqc_gpu_encode_test();
 
 //	cudaFree((void *)d_cxds);

@@ -944,15 +944,13 @@ __global__ void g_decode(CoefficientState *coeffBuffors, byte *inbuf, int maxThr
 
 #include <stdio.h>
 
-void launch_encode(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, byte *cxd_pairs, int maxThreadBufforLength, CodeBlockAdditionalInfo *infos, int codeBlocks)
+void launch_encode(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, byte *cxd_pairs, int maxThreadBufforLength, CodeBlockAdditionalInfo *infos, int codeBlocks, mem_mg_t *mem_mg)
 {
 	// Initialize CUDA
 	cudaError_t cuerr;
 
-	CXD *cxds;
-	cuda_d_allocate_mem((void **) &cxds, sizeof(CXD) * codeBlocks);
-	MQEncoder *mqstates;
-	cuda_d_allocate_mem((void **) &mqstates, sizeof(MQEncoder) * codeBlocks);
+	CXD *cxds = (CXD *)mem_mg->alloc->dev(sizeof(CXD) * codeBlocks, mem_mg->ctx);
+	MQEncoder *mqstates = (MQEncoder *)mem_mg->alloc->dev(sizeof(MQEncoder) * codeBlocks, mem_mg->ctx);
 
 //	printf("grid %d %d %d\nblock %d %d %d\n", gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z);
 
@@ -970,18 +968,18 @@ void launch_encode(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, 
 		return;
 	}
 
-	cuda_d_free(mqstates);
+	mem_mg->dealloc->dev(mqstates, mem_mg->ctx);
 }
 
-void _launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, int maxThreadBufforLength, CodeBlockAdditionalInfo *infos, int codeBlocks, const int maxMQStatesPerCodeBlock, PcrdCodeblock *pcrdCodeblocks, PcrdCodeblockInfo *pcrdCodeblockInfos) {
+void _launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, int maxThreadBufforLength, CodeBlockAdditionalInfo *infos, int codeBlocks, const int maxMQStatesPerCodeBlock, PcrdCodeblock *pcrdCodeblocks, PcrdCodeblockInfo *pcrdCodeblockInfos, mem_mg_t *mem_mg) {
 	MQEncoder *mqstates;
-	cuda_d_allocate_mem((void **) &mqstates, sizeof(MQEncoder) * codeBlocks * maxMQStatesPerCodeBlock);
+	mqstates = (MQEncoder *)mem_mg->alloc->dev(sizeof(MQEncoder) * codeBlocks * maxMQStatesPerCodeBlock, mem_mg->ctx);
 
 	g_encode_pcrd<<<gridDim, blockDim>>>(coeffBuffors, maxThreadBufforLength, infos, codeBlocks, mqstates, maxMQStatesPerCodeBlock, pcrdCodeblocks);
 
 	g_lengthCalculation_pcrd<<<(int) ceil(codeBlocks / 512.0f), 512>>>(infos, codeBlocks, mqstates, maxMQStatesPerCodeBlock, pcrdCodeblocks, pcrdCodeblockInfos);
 
-	cuda_d_free(mqstates);
+	mem_mg->dealloc->dev(mqstates, mem_mg->ctx);
 }
 
 

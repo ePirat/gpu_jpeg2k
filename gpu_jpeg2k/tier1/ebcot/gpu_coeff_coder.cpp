@@ -36,7 +36,7 @@ void print_cdx(EntropyCodingTaskInfo *infos, int codeBlocks) {
 	}
 }
 
-float gpuEncode(EntropyCodingTaskInfo *infos, int count, int targetSize)
+float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int targetSize)
 {
 	int codeBlocks = count;
 	int maxOutLength = MAX_CODESTREAM_SIZE;
@@ -45,15 +45,9 @@ float gpuEncode(EntropyCodingTaskInfo *infos, int count, int targetSize)
 	for(int i = 0; i < codeBlocks; i++)
 		n += infos[i].width * infos[i].height;
 
-	byte *d_outbuf;
-	byte *d_cxd_pairs;
-	GPU_JPEG2K::CoefficientState *d_stBuffors;
-
-	CodeBlockAdditionalInfo *h_infos = (CodeBlockAdditionalInfo *) malloc(sizeof(CodeBlockAdditionalInfo) * codeBlocks);
-	CodeBlockAdditionalInfo *d_infos;
-
-	cuda_d_allocate_mem((void **) &d_cxd_pairs, sizeof(byte) * codeBlocks * maxOutLength);
-	cuda_d_allocate_mem((void **) &d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
+	CodeBlockAdditionalInfo *h_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->host(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
+	byte *d_cxd_pairs = (byte *)mem_mg->alloc->dev(sizeof(byte) * codeBlocks * maxOutLength, mem_mg->ctx);
+	CodeBlockAdditionalInfo *d_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->dev(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
 
 	int magconOffset = 0;
 
@@ -74,33 +68,24 @@ float gpuEncode(EntropyCodingTaskInfo *infos, int count, int targetSize)
 		magconOffset += h_infos[i].width * (h_infos[i].stripeNo + 2);
 	}
 
-	cuda_d_allocate_mem((void **) &d_stBuffors, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset);
+	GPU_JPEG2K::CoefficientState *d_stBuffors = (GPU_JPEG2K::CoefficientState *)mem_mg->alloc->dev(sizeof(GPU_JPEG2K::CoefficientState) * magconOffset, mem_mg->ctx);
 	CHECK_ERRORS(cudaMemset((void *) d_stBuffors, 0, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset));
 
 	cuda_memcpy_htd(h_infos, d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 
-	cudaEvent_t start, end;
-	cudaEventCreate(&start);
-	cudaEventCreate(&end);
-
-	cudaEventRecord(start, 0);
-
 	if(targetSize == 0)
 	{
 		//printf("No pcrd\n");
-		CHECK_ERRORS(GPU_JPEG2K::launch_encode((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_cxd_pairs, maxOutLength, d_infos, codeBlocks));
+		CHECK_ERRORS(GPU_JPEG2K::launch_encode((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_cxd_pairs, maxOutLength, d_infos, codeBlocks, mem_mg));
 	}
 	else
 	{
 		printf("Pcrd\n");
-		CHECK_ERRORS(GPU_JPEG2K::launch_encode_pcrd((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, maxOutLength, d_infos, codeBlocks, targetSize));
+		CHECK_ERRORS(GPU_JPEG2K::launch_encode_pcrd((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, maxOutLength, d_infos, codeBlocks, targetSize, mem_mg));
 	}
 
-	cudaEventRecord(end, 0);
-
 	cuda_memcpy_dth(d_infos, h_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
-
-	mqc_gpu_encode(infos, h_infos, codeBlocks, d_cxd_pairs, maxOutLength);
+	mqc_gpu_encode(infos, h_infos, codeBlocks, d_cxd_pairs, maxOutLength, mem_mg);
 
 	for(int i = 0; i < codeBlocks; i++)
 	{
@@ -123,15 +108,12 @@ float gpuEncode(EntropyCodingTaskInfo *infos, int count, int targetSize)
 		}*/
 	}
 
-//	print_cdx(infos, codeBlocks);
-
-	cuda_d_free(d_stBuffors);
-	cuda_d_free(d_infos);
-
-	free(h_infos);
+	mem_mg->dealloc->dev(d_stBuffors, mem_mg->ctx);
+	mem_mg->dealloc->dev(d_infos, mem_mg->ctx);
+	mem_mg->dealloc->dev(d_cxd_pairs, mem_mg->ctx);
+	mem_mg->dealloc->host(h_infos, mem_mg->ctx);
 
 	float elapsed = 0.0f;
-	cudaEventElapsedTime(&elapsed, start, end);
 	
 	return elapsed;
 }
@@ -264,11 +246,13 @@ void binary_fprintf(FILE *file, unsigned int in)
 
 void encode_tasks_serial(type_tile *tile) {
 	type_coding_param *coding_params = tile->parent_img->coding_param;
+	type_image *img = tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 
 	std::list<type_codeblock *> cblks;
 	extract_cblks(tile, cblks);
 
-	EntropyCodingTaskInfo *tasks = (EntropyCodingTaskInfo *) malloc(sizeof(EntropyCodingTaskInfo) * cblks.size());
+	EntropyCodingTaskInfo *tasks = (EntropyCodingTaskInfo *)mem_mg->alloc->host(sizeof(EntropyCodingTaskInfo) * cblks.size(), mem_mg->ctx);
 
 	std::list<type_codeblock *>::iterator ii = cblks.begin();
 
@@ -278,7 +262,7 @@ void encode_tasks_serial(type_tile *tile) {
 
 //	printf("%d\n", num_tasks);
 
-	float t = gpuEncode(tasks, num_tasks, coding_params->target_size);
+	gpuEncode(tasks, mem_mg, num_tasks, coding_params->target_size);
 
 //	printf("kernel consumption: %f\n", t);
 
@@ -292,7 +276,30 @@ void encode_tasks_serial(type_tile *tile) {
 		(*ii)->num_coding_passes = tasks[i].codingPasses;
 	}
 
-	free(tasks);
+	mem_mg->dealloc->host(tasks, mem_mg->ctx);
+}
+
+void free_subband(type_tile *tile) {
+	type_image *img = tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
+	type_tile_comp *tile_comp;
+	type_res_lvl *res_lvl;
+	type_subband *sb;
+	int i, j, k;
+
+	for(i = 0; i < img->num_components; i++)
+	{
+		tile_comp = &(tile->tile_comp[i]);
+		for(j = 0; j < tile_comp->num_rlvls; j++)
+		{
+			res_lvl = &(tile_comp->res_lvls[j]);
+			for(k = 0; k < res_lvl->num_subbands; k++)
+			{
+				sb = &(res_lvl->subbands[k]);
+				mem_mg->dealloc->dev(sb->cblks_data_d, mem_mg->ctx);
+			}
+		}
+	}
 }
 
 void encode_tile(type_tile *tile)
@@ -303,6 +310,7 @@ void encode_tile(type_tile *tile)
 
 	encode_tasks_serial(tile);
 
+	free_subband(tile);
 //	stop_measure(INFO);
 
 //	println_end(INFO);
