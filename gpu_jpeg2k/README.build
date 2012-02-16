@@ -3,11 +3,14 @@ While you are in the root directory of the project issue following commands:
 
 > mkdir build
 > cd build
-> cmake ..
+# Provide your device architecture (ie. sm_13 - GT200, sm_20 - GF100)
+> cmake -D CUDA_ARCH:STRING=sm_? ..
 > make
 
-There should be brand new executable in the build directory.
+There should be brand new shared library in the build directory.
 
-You can also build only chosen module:
-make decoder
-make encoder
+To build sample applications:
+> cd apps
+> mkdir build
+> cmake ..
+> make
