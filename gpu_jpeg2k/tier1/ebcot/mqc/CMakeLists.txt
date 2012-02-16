@@ -22,5 +22,5 @@ cuda_add_library(mqc
 
 TARGET_LINK_LIBRARIES(mqc 
 	misc
-	openjpeg
+	#openjpeg
 )
