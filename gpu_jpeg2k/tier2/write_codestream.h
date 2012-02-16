@@ -9,7 +9,7 @@
 #define WRITE_CODESTREAM_H_
 
 #include "../types/image_types.h"
-#include "../gpu_jpeg2k.h"
+#include "../include/gpu_jpeg2k.h"
 
 void write_codestream(type_image *img, Chunk **blocks, Chunk **order);
 

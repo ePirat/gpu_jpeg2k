@@ -5,7 +5,7 @@
  *      Author: miloszc
  */
 
-#include "gpu_jpeg2k.h"
+#include "include/gpu_jpeg2k.h"
 #include "tier2/markers.h"
 #include "types/image.h"
 #include "types/image_raw.h"

@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "func.h"
 #include "../misc/memory_management.cuh"
-#include "../misc/memory.h"
+#include "../include/memory.h"
 #include "list.h"
 
 #define DATA_ALIGMENT 256

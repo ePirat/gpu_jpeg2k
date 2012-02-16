@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #include "write_codestream.h"
-#include "../gpu_jpeg2k.h"
+#include "../include/gpu_jpeg2k.h"
 
 void write_codestream(type_image *img, Chunk **blocks, Chunk **order) {
 	mem_mg_t *mem_mg = img->mem_mg;

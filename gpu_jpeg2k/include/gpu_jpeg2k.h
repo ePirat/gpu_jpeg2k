@@ -6,7 +6,7 @@
  */
 
 #include <stdint.h>
-#include "misc/memory.h"
+#include "memory.h"
 
 #ifndef GPU_JPEG2K_H_
 #define GPU_JPEG2K_H_

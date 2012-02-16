@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
-#include "../../misc/memory.h"
+#include "../../include/memory.h"
 
 #define THREADS 32
 

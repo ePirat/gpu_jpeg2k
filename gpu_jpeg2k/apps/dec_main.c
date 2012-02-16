@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../gpu_jpeg2k.h"
+#include "../include/gpu_jpeg2k.h"
 #include "../config/parameters.h"
 #include "../config/arguments.h"
 #include "../config/help.h"

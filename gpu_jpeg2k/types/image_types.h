@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include "../tier2/tag_tree_encode.h"
 #include "image_mct.h"
-#include "../misc/memory.h"
+#include "../include/memory.h"
 
 #define UNSIGNED 0U
 #define SIGNED 1U

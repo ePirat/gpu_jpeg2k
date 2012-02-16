@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include "../gpu_jpeg2k.h"
+#include "../include/gpu_jpeg2k.h"
 #include "../misc/cuda_errors.h"
 #include "../config/parameters.h"
 #include "../config/arguments.h"

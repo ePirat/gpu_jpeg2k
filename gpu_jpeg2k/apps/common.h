@@ -9,7 +9,7 @@
 #define COMMON_H_
 
 #include "func.h"
-#include "../misc/memory.h"
+#include "../include/memory.h"
 
 void init_ctx(ctx_t *ctx);
 void deinit_dev_mem(mem_t *mem);

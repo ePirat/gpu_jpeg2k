@@ -9,7 +9,7 @@
 #define IMAGE_RAW_H_
 
 #include "image_types.h"
-#include "../gpu_jpeg2k.h"
+#include "../include/gpu_jpeg2k.h"
 
 void save_raw(type_image *img, Chunk **blocks, Chunk **order);
 
