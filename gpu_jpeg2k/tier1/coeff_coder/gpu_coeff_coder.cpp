@@ -50,7 +50,7 @@ extern "C" {
 
 #define CHECK_ERRORS(stmt) CHECK_ERRORS_WITH_SYNC(stmt)
 
-float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int targetSize)
+float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int targetSize)
 {
 	int codeBlocks = count;
 	int maxOutLength = MAX_CODESTREAM_SIZE;
@@ -60,6 +60,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 	for(int i = 0; i < codeBlocks; i++)
 		n += infos[i].width * infos[i].height;
 
+	mem_mg_t *mem_mg = img->mem_mg;
 	CodeBlockAdditionalInfo *h_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->host(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
 	CodeBlockAdditionalInfo *d_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->dev(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
 	byte *d_outbuf = (byte *)mem_mg->alloc->dev(sizeof(byte) * codeBlocks * maxOutLength, mem_mg->ctx);
@@ -117,6 +118,9 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 	cuda_memcpy_dth(d_infos, h_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 //	printf("copy: %d\n", stop_measure(start_copy));
 
+	img->codestream = (byte *)mem_mg->alloc->host(sizeof(byte) * codeBlocks * maxOutLength, mem_mg->ctx);
+	cuda_memcpy_dth(d_outbuf, img->codestream, sizeof(byte) * codeBlocks * maxOutLength);
+
 //	long int start_cblk = start_measure();
 	for(int i = 0; i < codeBlocks; i++)
 	{
@@ -129,8 +133,9 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 
 			int len = h_infos[i].length;
 
-			infos[i].codeStream = (byte *)mem_mg->alloc->host(sizeof(byte) * len, mem_mg->ctx);
-			cuda_memcpy_dth(d_outbuf + i * maxOutLength, infos[i].codeStream, sizeof(byte) * len);
+			infos[i].codeStream = img->codestream + i * maxOutLength;
+//			infos[i].codeStream = (byte *)mem_mg->alloc->host(sizeof(byte) * len, mem_mg->ctx);
+//			cuda_memcpy_dth(d_outbuf + i * maxOutLength, infos[i].codeStream, sizeof(byte) * len);
 		}
 		else
 		{
@@ -306,7 +311,7 @@ void encode_tasks_serial(type_tile *tile) {
 		convert_to_task(tasks[num_tasks++], *(*ii));
 
 //	printf("%d\n", num_tasks);
-	gpuEncode(tasks, mem_mg, num_tasks, coding_params->target_size);
+	gpuEncode(tasks, img, num_tasks, coding_params->target_size);
 //	printf("kernel consumption: %f\n", t);
 
 	ii = cblks.begin();
