@@ -10,8 +10,8 @@
 #include "common.h"
 
 // 512 MB = 536870912
-#define DEV_ALLOC_SIZE 536870912
-#define HOST_ALLOC_SIZE 536870912
+#define DEV_ALLOC_SIZE 1342177280
+#define HOST_ALLOC_SIZE 104857600
 
 static void init_dev_mem(mem_t *mem) {
 	cuda_d_allocate_mem(&(mem->p), DEV_ALLOC_SIZE);
