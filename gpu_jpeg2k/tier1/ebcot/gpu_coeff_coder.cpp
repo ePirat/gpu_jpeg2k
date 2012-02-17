@@ -41,7 +41,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 	int codeBlocks = count;
 	int maxOutLength = MAX_CODESTREAM_SIZE;
 
-	long int start_bebcot = start_measure();
+//	long int start_bebcot = start_measure();
 	int n = 0;
 	for(int i = 0; i < codeBlocks; i++)
 		n += infos[i].width * infos[i].height;
@@ -75,7 +75,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 
 	cuda_memcpy_htd(h_infos, d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 
-	printf("before launch encode: %d\n", stop_measure(start_bebcot));
+//	printf("before launch encode: %d\n", stop_measure(start_bebcot));
 
 	long int start_ebcot = start_measure();
 	if(targetSize == 0)
@@ -88,15 +88,15 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 //		printf("Pcrd\n");
 		CHECK_ERRORS(GPU_JPEG2K::launch_encode_pcrd((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, maxOutLength, d_infos, codeBlocks, targetSize, mem_mg));
 	}
-	printf("launch encode: %d\n", stop_measure(start_ebcot));
+//	printf("launch encode: %d\n", stop_measure(start_ebcot));
 
 
-	long int start_mqc = start_measure();
+//	long int start_mqc = start_measure();
 	cuda_memcpy_dth(d_infos, h_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 	img->codestream = mqc_gpu_encode(infos, h_infos, codeBlocks, d_cxd_pairs, maxOutLength, mem_mg);
-	printf("mqc: %d\n", stop_measure(start_mqc));
+//	printf("mqc: %d\n", stop_measure(start_mqc));
 
-	long int start_aebcot = start_measure();
+//	long int start_aebcot = start_measure();
 	for(int i = 0; i < codeBlocks; i++)
 	{
 		infos[i].significantBits = h_infos[i].significantBits;
@@ -122,7 +122,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 	mem_mg->dealloc->dev(d_infos, mem_mg->ctx);
 	mem_mg->dealloc->dev(d_cxd_pairs, mem_mg->ctx);
 	mem_mg->dealloc->host(h_infos, mem_mg->ctx);
-	printf("after launch encode: %d\n", stop_measure(start_aebcot));
+//	printf("after launch encode: %d\n", stop_measure(start_aebcot));
 
 	float elapsed = 0.0f;
 	
