@@ -36,16 +36,17 @@ void print_cdx(EntropyCodingTaskInfo *infos, int codeBlocks) {
 	}
 }
 
-float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int targetSize)
+float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int targetSize)
 {
 	int codeBlocks = count;
 	int maxOutLength = MAX_CODESTREAM_SIZE;
 
-//	long int start_bebcot = start_measure();
+	long int start_bebcot = start_measure();
 	int n = 0;
 	for(int i = 0; i < codeBlocks; i++)
 		n += infos[i].width * infos[i].height;
 
+	mem_mg_t *mem_mg = img->mem_mg;
 	CodeBlockAdditionalInfo *h_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->host(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
 	byte *d_cxd_pairs = (byte *)mem_mg->alloc->dev(sizeof(byte) * codeBlocks * maxOutLength, mem_mg->ctx);
 	CodeBlockAdditionalInfo *d_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->dev(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
@@ -74,9 +75,9 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 
 	cuda_memcpy_htd(h_infos, d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 
-//	printf("before launch encode: %d\n", stop_measure(start_bebcot));
+	printf("before launch encode: %d\n", stop_measure(start_bebcot));
 
-//	long int start_ebcot = start_measure();
+	long int start_ebcot = start_measure();
 	if(targetSize == 0)
 	{
 		//printf("No pcrd\n");
@@ -87,15 +88,15 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 //		printf("Pcrd\n");
 		CHECK_ERRORS(GPU_JPEG2K::launch_encode_pcrd((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, maxOutLength, d_infos, codeBlocks, targetSize, mem_mg));
 	}
-//	printf("launch encode: %d\n", stop_measure(start_ebcot));
+	printf("launch encode: %d\n", stop_measure(start_ebcot));
 
 
-//	long int start_mqc = start_measure();
+	long int start_mqc = start_measure();
 	cuda_memcpy_dth(d_infos, h_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
-	mqc_gpu_encode(infos, h_infos, codeBlocks, d_cxd_pairs, maxOutLength, mem_mg);
-//	printf("mqc: %d\n", stop_measure(start_mqc));
+	img->codestream = mqc_gpu_encode(infos, h_infos, codeBlocks, d_cxd_pairs, maxOutLength, mem_mg);
+	printf("mqc: %d\n", stop_measure(start_mqc));
 
-//	long int start_aebcot = start_measure();
+	long int start_aebcot = start_measure();
 	for(int i = 0; i < codeBlocks; i++)
 	{
 		infos[i].significantBits = h_infos[i].significantBits;
@@ -121,7 +122,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, mem_mg_t *mem_mg, int count, int t
 	mem_mg->dealloc->dev(d_infos, mem_mg->ctx);
 	mem_mg->dealloc->dev(d_cxd_pairs, mem_mg->ctx);
 	mem_mg->dealloc->host(h_infos, mem_mg->ctx);
-//	printf("after launch encode: %d\n", stop_measure(start_aebcot));
+	printf("after launch encode: %d\n", stop_measure(start_aebcot));
 
 	float elapsed = 0.0f;
 	
@@ -272,7 +273,7 @@ void encode_tasks_serial(type_tile *tile) {
 
 //	printf("%d\n", num_tasks);
 
-	gpuEncode(tasks, mem_mg, num_tasks, coding_params->target_size);
+	gpuEncode(tasks, img, num_tasks, coding_params->target_size);
 
 //	printf("kernel consumption: %f\n", t);
 

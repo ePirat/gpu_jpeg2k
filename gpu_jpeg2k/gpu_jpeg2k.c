@@ -73,6 +73,8 @@ static void init_img(type_image *img, void **img_data, Config *config) {
 	img->prog_order = LY_RES_COMP_POS_PROG;
 	img->num_layers = NUM_LAYERS;
 
+	img->codestream = NULL;
+
 	init_coding_params(img, config);
 	init_tiles(&img);
 	init_img_data(img, img_data);
@@ -89,13 +91,13 @@ void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order) {
 	mem_mg_t *mem_mg = config->mem_mg;
 	type_image *img = (type_image *)mem_mg->alloc->host(sizeof(type_image), mem_mg->ctx);
 
-//	long int start_init = start_measure();
+	long int start_init = start_measure();
 	init_img(img, img_data, config);
-//	printf("Init: %d\n", stop_measure(start_init));
+	printf("Init: %d\n", stop_measure(start_init));
 	
-//	long int start_mct = start_measure();
+	long int start_mct = start_measure();
 	enc_mct(img);
-//	printf("MCT: %d\n", stop_measure(start_mct));
+	printf("MCT: %d\n", stop_measure(start_mct));
 
 	int i = 0;
 	// Do processing for all tiles
@@ -103,29 +105,29 @@ void encode(void **img_data, Config *config, Chunk **blocks, Chunk **order) {
 	{
 		type_tile *tile = &(img->tile[i]);
 
-//		long int start_fwt = start_measure();
+		long int start_fwt = start_measure();
 		// Do forward wavelet transform
 		fwt(tile);
-//		printf("FWT: %d\n", stop_measure(start_fwt));
+		printf("FWT: %d\n", stop_measure(start_fwt));
 
-//		long int start_q = start_measure();
+		long int start_q = start_measure();
 		// Divide subbands to codeblocks, than quantize data
 		quantize_tile(tile);
-//		printf("Q: %d\n", stop_measure(start_q));
+		printf("Q: %d\n", stop_measure(start_q));
 
-//		long int start_ebcot = start_measure();
+		long int start_ebcot = start_measure();
 		// EBCOT + PCRD
 		encode_tile(tile);
-//		printf("EBCOT: %d\n", stop_measure(start_ebcot));
+		printf("EBCOT: %d\n", stop_measure(start_ebcot));
 	}
-//	long int start_w = start_measure();
+	long int start_w = start_measure();
 	// Write Codestream
 	write_codestream(img, blocks, order);
-//	printf("W: %d\n", stop_measure(start_w));
+	printf("W: %d\n", stop_measure(start_w));
 
-//	long int start_deinit = start_measure();
+	long int start_deinit = start_measure();
 	deinit_img(img);
-//	printf("Deinit: %d\n", stop_measure(start_deinit));
+	printf("Deinit: %d\n", stop_measure(start_deinit));
 //	free(img);
 }
 

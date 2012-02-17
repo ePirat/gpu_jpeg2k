@@ -912,8 +912,8 @@ void encode_packet_body(type_buffer *buffer, type_res_lvl *res_lvl)
 //			println_var(INFO, "%d) %d", cblk->cblk_no, cblk->length);
 			sum_size += cblk->length;
 			write_array(buffer, cblk->codestream, cblk->length);
-			if(cblk->length > 0)
-				mem_mg->dealloc->host(cblk->codestream, mem_mg->ctx);
+//			if(cblk->length > 0)
+//				mem_mg->dealloc->host(cblk->codestream, mem_mg->ctx);
 		}
 	}
 	//	println_end(INFO);
@@ -1038,6 +1038,13 @@ void decode_tiles(type_buffer *buffer, type_tile *tile)
 //	}
 }
 
+static void deinit_codestream(type_image *img) {
+	if(img->codestream != NULL) {
+			mem_mg_t *mem_mg = img->mem_mg;
+			mem_mg->dealloc->host(img->codestream, mem_mg->ctx);
+	}
+}
+
 /**
  * @brief Main function to encode the codestream.
  *
@@ -1056,6 +1063,8 @@ void encode_codestream(type_buffer *buffer, type_image *img)
 		tile = &(img->tile[i]);
 		encode_tiles(buffer, tile, i);
 	}
+
+	deinit_codestream(img);
 
 	write_short(buffer, EOC);
 	//	println_end(INFO);

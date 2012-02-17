@@ -445,6 +445,9 @@ struct type_image
 	/** Initial real-image data on GPU, used only in read_image and color transformation,
 	 * after tiling use pointers in tile->tile_comp.*/
 	type_data *img_data_d;
+
+	/** Codestream data on host for all codeblocks */
+	uint8_t *codestream;
 	/** Real image data is in this array of tiles. */
 	type_tile *tile;
 

@@ -18,7 +18,7 @@ extern "C" {
 #include "../../../misc/memory_management.cuh"
 }
 
-static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* mqc_data, int codeBlocks,
+static unsigned char* mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* mqc_data, int codeBlocks,
 		unsigned char* d_cxds, int maxOutLength, mem_mg_t *mem_mg, const char* param = 0, const char* name_suffix = 0) {
 	// Initialize CUDA
 	cudaError cuerr = cudaSuccess;
@@ -57,7 +57,7 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 	cuerr = cudaMemset((void*) d_bytes, 0, 1 + byte_index * sizeof(unsigned char));
 	if (cuerr != cudaSuccess) {
 		std::cout << "Can't memset for output bytes: " << cudaGetErrorString(cuerr) << std::endl;
-		return;
+		return NULL;
 	}
 	d_bytes++;
 
@@ -88,13 +88,14 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 		EntropyCodingTaskInfo * cblk = &infos[cblk_index];
 		struct cxd_block* cxd_block = &cxd_blocks[cblk_index];
 		cblk->length = cxd_block->byte_count > 0 ? cxd_block->byte_count : 0;
-		cblk->codeStream = (unsigned char *)mem_mg->alloc->host(sizeof(unsigned char) * cxd_block->byte_count, mem_mg->ctx);
-		cuda_memcpy_hth(&bytes[cxd_block->byte_begin], cblk->codeStream, sizeof(unsigned char) * cxd_block->byte_count);
+//		cblk->codeStream = (unsigned char *)mem_mg->alloc->host(sizeof(unsigned char) * cxd_block->byte_count, mem_mg->ctx);
+		cblk->codeStream = &bytes[cxd_block->byte_begin];
+//		cuda_memcpy_hth(&bytes[cxd_block->byte_begin], cblk->codeStream, sizeof(unsigned char) * cxd_block->byte_count);
 	}
 
 	// Free CPU Memory
 //		delete[] bytes;
-	mem_mg->dealloc->host(bytes, mem_mg->ctx);
+//	mem_mg->dealloc->host(bytes, mem_mg->ctx);
 
 	// Deinit encoder
 	//    mqc_gpu_deinit();
@@ -107,6 +108,8 @@ static void mqc_gpu_encode_(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInf
 	// Free CPU memory
 //	delete[] cxd_blocks;
 	mem_mg->dealloc->host(cxd_blocks, mem_mg->ctx);
+
+	return bytes;
 }
 
 void mqc_gpu_encode_test() {
@@ -203,7 +206,7 @@ void mqc_gpu_encode_test() {
 	cudaFree((void *)d_cxds);
 }
 
-void mqc_gpu_encode(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* h_infos, int codeBlocks,
+unsigned char* mqc_gpu_encode(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* h_infos, int codeBlocks,
 		unsigned char *d_cxd_pairs, int maxOutLength, mem_mg_t *mem_mg) {
 // Initialize CUDA
 	cudaError cuerr = cudaSuccess;
@@ -240,7 +243,7 @@ void mqc_gpu_encode(EntropyCodingTaskInfo *infos, CodeBlockAdditionalInfo* h_inf
 		}
 	}*/
 
-	mqc_gpu_encode_(infos, h_infos, codeBlocks, /*d_cxds*/d_cxd_pairs, maxOutLength, mem_mg);
+	return mqc_gpu_encode_(infos, h_infos, codeBlocks, /*d_cxds*/d_cxd_pairs, maxOutLength, mem_mg);
 //	mqc_gpu_encode_test();
 
 //	cudaFree((void *)d_cxds);

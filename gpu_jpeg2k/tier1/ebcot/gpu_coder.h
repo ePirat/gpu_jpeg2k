@@ -45,7 +45,7 @@ typedef struct
 extern void encode_tile(type_tile *tile);
 extern void encode_tile_dbg(type_tile *tile);
 void perform_test(const char * test_file_path);
-extern float gpuEncode(EntropyCodingTaskInfo *infos, int count, int targetSize);
+extern float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int targetSize);
 
 extern void decode_tile(type_tile *tile);
 
