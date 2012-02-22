@@ -39,7 +39,7 @@ void print_cdx(EntropyCodingTaskInfo *infos, int codeBlocks) {
 float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int targetSize)
 {
 	int codeBlocks = count;
-	int maxOutLength = MAX_CODESTREAM_SIZE;
+	int maxOutLength = /*MAX_CODESTREAM_SIZE*/(1 << img->cblk_exp_w) * (1 << img->cblk_exp_h) * 14;
 
 //	long int start_bebcot = start_measure();
 	int n = 0;
