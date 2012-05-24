@@ -113,6 +113,8 @@ int main(int argc, char *argv[]) {
 	init_config(config);
 
 	Chunk *img_data = read_img(img->in_file);
+	if(img_data == NULL)
+		return ERROR;
 	Chunk *blocks, *order;
 
 	long int start_dec;

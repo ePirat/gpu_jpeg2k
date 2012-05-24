@@ -44,7 +44,7 @@ void *_cuda_h_allocate_mem(size_t mem_size, void *ctx)
 	data = (void *)(((uint8_t *)(ctx_->mem->p)) + ctx_->mem->alloc_size);
 	ctx_->mem->alloc_size += aligned_size;
 	if(ctx_->mem->alloc_size > ctx_->mem->size) {
-		perror("Insufficient memory space\n");
+		perror("Insufficient host memory space\n");
 		return NULL;
 	}
 	insert((t_node **)&(ctx_->head), create((uint64_t)data, aligned_size));
@@ -65,12 +65,12 @@ void *_cuda_d_allocate_mem(size_t mem_size, void *ctx)
 //	cuda_d_allocate_mem(&data, mem_size);
 
 	size_t aligned_size = mem_size + (DATA_ALIGMENT - (mem_size & (DATA_ALIGMENT - 1)));
-//	printf("%lld	%lld\n", mem_size, aligned_size);
 	ctx_m_t *ctx_ = (ctx_m_t *)((ctx_t *)ctx)->dev;
 	data = (void *)(((uint8_t *)(ctx_->mem->p)) + ctx_->mem->alloc_size);
+//	printf("a %x	%lld	%lld\n", (uint64_t)data, aligned_size, actual_size((t_node *)ctx_->head));
 	ctx_->mem->alloc_size += aligned_size;
 	if(ctx_->mem->alloc_size > ctx_->mem->size) {
-		perror("Insufficient memory space\n");
+		perror("Insufficient device memory space\n");
 		return NULL;
 	}
 //	printf("data %lld z %lld\n", (uint64_t)data, ((uint64_t)data & (DATA_ALIGMENT - 1)));

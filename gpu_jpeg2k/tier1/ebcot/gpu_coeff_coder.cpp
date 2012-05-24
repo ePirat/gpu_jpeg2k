@@ -129,10 +129,10 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 	return elapsed;
 }
 
-float gpuDecode(EntropyCodingTaskInfo *infos, int count)
+float gpuDecode(EntropyCodingTaskInfo *infos, type_image *img, mem_mg_t *mem_mg, int count)
 {
 	int codeBlocks = count;
-	int maxOutLength = MAX_CODESTREAM_SIZE;
+	int maxOutLength = /*MAX_CODESTREAM_SIZE*/(1 << img->cblk_exp_w) * (1 << img->cblk_exp_h) * 14;
 
 	int n = 0;
 	for(int i = 0; i < codeBlocks; i++)
@@ -141,11 +141,11 @@ float gpuDecode(EntropyCodingTaskInfo *infos, int count)
 	byte *d_inbuf;
 	GPU_JPEG2K::CoefficientState *d_stBuffors;
 
-	CodeBlockAdditionalInfo *h_infos = (CodeBlockAdditionalInfo *) malloc(sizeof(CodeBlockAdditionalInfo) * codeBlocks);
+	CodeBlockAdditionalInfo *h_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->host(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
 	CodeBlockAdditionalInfo *d_infos;
 
-	cuda_d_allocate_mem((void **) &d_inbuf, sizeof(byte) * codeBlocks * maxOutLength);
-	cuda_d_allocate_mem((void **) &d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
+	d_inbuf = (byte *)mem_mg->alloc->dev(sizeof(byte) * codeBlocks * maxOutLength, mem_mg->ctx);
+	d_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->dev(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
 
 	int magconOffset = 0;
 
@@ -161,7 +161,7 @@ float gpuDecode(EntropyCodingTaskInfo *infos, int count)
 		h_infos[i].length = infos[i].length;
 		h_infos[i].significantBits = infos[i].significantBits;
 
-		cuda_d_allocate_mem((void **) &(h_infos[i].coefficients), sizeof(int) * infos[i].nominalWidth * infos[i].nominalHeight);
+		h_infos[i].coefficients = (int *)mem_mg->alloc->dev(sizeof(int) * infos[i].nominalWidth * infos[i].nominalHeight, mem_mg->ctx);
 		infos[i].coefficients = h_infos[i].coefficients;
 
 		cuda_memcpy_htd(infos[i].codeStream, (void *) (d_inbuf + i * maxOutLength), sizeof(byte) * infos[i].length);
@@ -169,29 +169,29 @@ float gpuDecode(EntropyCodingTaskInfo *infos, int count)
 		magconOffset += h_infos[i].width * (h_infos[i].stripeNo + 2);
 	}
 
-	cuda_d_allocate_mem((void **) &d_stBuffors, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset);
-	CHECK_ERRORS(cudaMemset((void *) d_stBuffors, 0, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset));
+	d_stBuffors = (GPU_JPEG2K::CoefficientState *)mem_mg->alloc->dev(sizeof(GPU_JPEG2K::CoefficientState) * magconOffset, mem_mg->ctx);
+	cudaMemset((void *) d_stBuffors, 0, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset);
 
 	cuda_memcpy_htd(h_infos, d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 
-	cudaEvent_t start, end;
-	cudaEventCreate(&start);
-	cudaEventCreate(&end);
+//	cudaEvent_t start, end;
+//	cudaEventCreate(&start);
+//	cudaEventCreate(&end);
+//
+//	cudaEventRecord(start, 0);
 
-	cudaEventRecord(start, 0);
+	GPU_JPEG2K::launch_decode((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_inbuf, maxOutLength, d_infos, codeBlocks);
 
-	CHECK_ERRORS(GPU_JPEG2K::launch_decode((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_inbuf, maxOutLength, d_infos, codeBlocks));
+//	cudaEventRecord(end, 0);
 
-	cudaEventRecord(end, 0);
+	mem_mg->dealloc->dev(d_inbuf, mem_mg->ctx);
+	mem_mg->dealloc->dev(d_stBuffors, mem_mg->ctx);
+	mem_mg->dealloc->dev(d_infos, mem_mg->ctx);
 
-	cuda_d_free(d_inbuf);
-	cuda_d_free(d_stBuffors);
-	cuda_d_free(d_infos);
-
-	free(h_infos);
+	mem_mg->dealloc->host(h_infos, mem_mg->ctx);
 
 	float elapsed = 0.0f;
-	cudaEventElapsedTime(&elapsed, start, end);
+//	cudaEventElapsedTime(&elapsed, start, end);
 	
 	return elapsed;
 }
@@ -376,10 +376,12 @@ void decode_tile(type_tile *tile)
 
 //	start_measure();
 
+	mem_mg_t *mem_mg = tile->parent_img->mem_mg;
+	type_image *img = tile->parent_img;
 	std::list<type_codeblock *> cblks;
 	extract_cblks(tile, cblks);
 
-	EntropyCodingTaskInfo *tasks = (EntropyCodingTaskInfo *) malloc(sizeof(EntropyCodingTaskInfo) * cblks.size());
+	EntropyCodingTaskInfo *tasks = (EntropyCodingTaskInfo *)mem_mg->alloc->host(sizeof(EntropyCodingTaskInfo) * cblks.size(), mem_mg->ctx);
 
 	std::list<type_codeblock *>::iterator ii = cblks.begin();
 
@@ -391,9 +393,7 @@ void decode_tile(type_tile *tile)
 
 //	printf("%d\n", num_tasks);
 
-	float t = gpuDecode(tasks, num_tasks);
-
-	printf("kernel consumption: %f\n", t);
+	gpuDecode(tasks, img, mem_mg, num_tasks);
 
 	ii = cblks.begin();
 
@@ -402,7 +402,7 @@ void decode_tile(type_tile *tile)
 		(*ii)->data_d = tasks[i].coefficients;
 	}
 
-	free(tasks);
+	mem_mg->dealloc->host(tasks, mem_mg->ctx);
 
 //	stop_measure(INFO);
 
