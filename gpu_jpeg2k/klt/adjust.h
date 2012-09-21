@@ -1,7 +1,7 @@
 #ifndef ADJUST_H_
 #define ADJUST_H_
 
-#include "klt.h"
+#include "../types/image_types.h"
 
 #define FORWARD 1
 

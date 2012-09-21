@@ -367,7 +367,7 @@ mqc_gpu_develop_init(const char* configuration)
 {
     // Copy lookup table to constant memory
     cudaError cuerr = cudaMemcpyToSymbol(
-        "d_mqc_gpu_develop_states",
+        d_mqc_gpu_develop_states,
         mqc_gpu_develop_states, 
         47 * 2 * sizeof(struct mqc_gpu_develop_state), 
         0, 

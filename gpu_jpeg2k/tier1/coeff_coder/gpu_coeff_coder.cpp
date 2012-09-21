@@ -85,7 +85,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 	}
 
 	GPU_JPEG2K::CoefficientState *d_stBuffors = (GPU_JPEG2K::CoefficientState *)mem_mg->alloc->dev(sizeof(GPU_JPEG2K::CoefficientState) * magconOffset, mem_mg->ctx);
-	cudaMemset((void *) d_stBuffors, 0, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset);
+	CHECK_ERRORS(cudaMemset((void *) d_stBuffors, 0, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset));
 
 	cuda_memcpy_htd(h_infos, d_infos, sizeof(CodeBlockAdditionalInfo) * codeBlocks);
 
@@ -145,9 +145,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 	}
 //	printf("cblk: %d\n", stop_measure(start_cblk));
 
-
 //	long int start_free = start_measure();
-
 //	cuda_d_free(d_outbuf);
 	mem_mg->dealloc->dev(d_outbuf, mem_mg->ctx);
 //	cuda_d_free(d_stBuffors);
@@ -159,12 +157,10 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 	mem_mg->dealloc->host(h_infos, mem_mg->ctx);
 
 //	printf("free: %d\n", stop_measure(start_free));
-
 	float elapsed = 0.0f;
 //	cudaEventElapsedTime(&elapsed, start, end);
 	
 //	printf("after launch encode: %d\n", stop_measure(start_aebcot));
-
 	return elapsed;
 }
 

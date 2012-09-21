@@ -1,4 +1,6 @@
 #include "adjust.h"
+
+#include <cublas.h>
 extern "C" {
 #include "../misc/memory_management.cuh"
 #include "../print_info/print_info.h"

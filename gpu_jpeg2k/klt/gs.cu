@@ -4,10 +4,11 @@
  * @author Kamil Balwierz
  */
 
-#include <math.h>
-#include <time.h>
 #include "gs.h"
 
+#include <math.h>
+#include <time.h>
+#include <cublas.h>
 
 int gram_schmidt(int N, type_data* output, type_data *dinput, type_data *eValues, int J, type_data er) {
 	cublasStatus status;
