@@ -160,42 +160,42 @@ void decode(Chunk *img_data, Config *config, Chunk **blocks, Chunk **order) {
 	type_buffer *src_buff = (type_buffer *)mem_mg->alloc->host(sizeof(type_buffer), mem_mg->ctx);
 	src_buff->mem_mg = mem_mg;
 
-	long int start_init = start_measure();
+//	long int start_init = start_measure();
 	init_dec_buffer(img_data, src_buff);
-	printf("start_init: %d\n", stop_measure(start_init));
+//	printf("start_init: %d\n", stop_measure(start_init));
 
 	type_image *img = (type_image *)mem_mg->alloc->host(sizeof(type_image), mem_mg->ctx);
 	img->mem_mg = mem_mg;
-	long int dec_cod = start_measure();
+//	long int dec_cod = start_measure();
 	decode_codestream(src_buff, img);
 	alloc_img_data(img);
-	printf("dec_cod: %d\n", stop_measure(dec_cod));
+//	printf("dec_cod: %d\n", stop_measure(dec_cod));
 
 	int i = 0;
 	// Do decoding for all tiles
 	for(i = 0; i < img->num_tiles; ++i)	{
 		type_tile *tile = &(img->tile[i]);
-		long int dec_tile = start_measure();
+//		long int dec_tile = start_measure();
 		/* Decode data */
 		decode_tile(tile);
-		printf("dec_tile: %d\n", stop_measure(dec_tile));
-		long int deq_tile = start_measure();
+//		printf("dec_tile: %d\n", stop_measure(dec_tile));
+//		long int deq_tile = start_measure();
 		/* Dequantize data */
 		dequantize_tile(tile);
-		printf("deq_tile: %d\n", stop_measure(deq_tile));
-		long int iwt_tile = start_measure();
+//		printf("deq_tile: %d\n", stop_measure(deq_tile));
+//		long int iwt_tile = start_measure();
 		/* Do inverse wavelet transform */
 		iwt(tile);
-		printf("iwt_tile: %d\n", stop_measure(iwt_tile));
+//		printf("iwt_tile: %d\n", stop_measure(iwt_tile));
 	}
-	long int _mct = start_measure();
+//	long int _mct = start_measure();
 	dec_mct(img);
-	printf("dec_mct: %d\n", stop_measure(_mct));
+//	printf("dec_mct: %d\n", stop_measure(_mct));
 
-	long int save_img = start_measure();
+//	long int save_img = start_measure();
 	fill_config(img, config);
 //	save_image(img);
 	save_raw(img, blocks, order);
-	printf("save_img: %d\n", stop_measure(save_img));
+//	printf("save_img: %d\n", stop_measure(save_img));
 //	free(img);
 }

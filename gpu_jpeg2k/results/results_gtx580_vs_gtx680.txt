@@ -1,0 +1,24 @@
+artificial.bmp		cuda 4.2	cuda 5.0RC
+(old_ebcot)		580		680
+fwt53 64x64 mct=1	474-483ms	440-450ms
+fwt53 64x64 mct=0	866-867ms	790-808ms
+
+artificial.ppm
+(old_ebcot)		580		680
+fwt53 64x64 mct=1	773-784ms	712-738ms
+fwt53 64x64 mct=0	859-861ms	778-805ms
+fwt53 16x16 mct=1	522-524ms	577-598ms
+fwt53 16x16 mct=0	569-580ms	632-648ms
+(new_ebcot)
+fwt53 64x64 mct=1	393-395ms	ms
+fwt53 64x64 mct=0	448-451ms	ms
+fwt53 16x16 mct=1	212-225ms	ms
+fwt53 16x16 mct=0	233-243ms	ms
+
+big_building.ppm
+(old_ebcot)		580		680
+fwt53 64x64 mct=1	3484-3537ms	3876-3911ms
+fwt53 64x64 mct=0	3448-3512ms	3903-3957ms
+(new_ebcot)
+fwt53 64x64 mct=1	3484-3537ms	3876-3911ms
+fwt53 64x64 mct=0	3448-3512ms	3903-3957ms
