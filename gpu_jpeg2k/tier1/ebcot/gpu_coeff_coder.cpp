@@ -29,6 +29,8 @@ extern "C" {
 #include "coeff_coder_pcrd.cuh"
 #include "mqc/mqc_wrapper.h"
 
+#define MAX_CODESTREAM_LAYERS 14
+
 void print_cdx(EntropyCodingTaskInfo *infos, int codeBlocks) {
 	for(int i = 0; i < codeBlocks; i++)
 	{
@@ -39,7 +41,7 @@ void print_cdx(EntropyCodingTaskInfo *infos, int codeBlocks) {
 float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int targetSize)
 {
 	int codeBlocks = count;
-	int maxOutLength = /*MAX_CODESTREAM_SIZE*/(1 << img->cblk_exp_w) * (1 << img->cblk_exp_h) * 14;
+	int maxOutLength = /*MAX_CODESTREAM_SIZE*/(1 << img->cblk_exp_w) * (1 << img->cblk_exp_h) * MAX_CODESTREAM_LAYERS;
 
 //	long int start_bebcot = start_measure();
 	int n = 0;
@@ -129,10 +131,11 @@ float gpuEncode(EntropyCodingTaskInfo *infos, type_image *img, int count, int ta
 	return elapsed;
 }
 
-float gpuDecode(EntropyCodingTaskInfo *infos, type_image *img, mem_mg_t *mem_mg, int count)
+float gpuDecode(type_image *img, byte *codestreams, EntropyCodingTaskInfo *infos, int count)
 {
 	int codeBlocks = count;
-	int maxOutLength = /*MAX_CODESTREAM_SIZE*/(1 << img->cblk_exp_w) * (1 << img->cblk_exp_h) * 14;
+	int maxOutLength = /*MAX_CODESTREAM_SIZE*/(1 << img->cblk_exp_w) * (1 << img->cblk_exp_h) * MAX_CODESTREAM_LAYERS;
+	mem_mg_t *mem_mg = img->mem_mg;
 
 	int n = 0;
 	for(int i = 0; i < codeBlocks; i++)
@@ -148,7 +151,6 @@ float gpuDecode(EntropyCodingTaskInfo *infos, type_image *img, mem_mg_t *mem_mg,
 	d_infos = (CodeBlockAdditionalInfo *)mem_mg->alloc->dev(sizeof(CodeBlockAdditionalInfo) * codeBlocks, mem_mg->ctx);
 
 	int magconOffset = 0;
-
 	for(int i = 0; i < codeBlocks; i++)
 	{
 		h_infos[i].width = infos[i].width;
@@ -161,13 +163,14 @@ float gpuDecode(EntropyCodingTaskInfo *infos, type_image *img, mem_mg_t *mem_mg,
 		h_infos[i].length = infos[i].length;
 		h_infos[i].significantBits = infos[i].significantBits;
 
-		h_infos[i].coefficients = (int *)mem_mg->alloc->dev(sizeof(int) * infos[i].nominalWidth * infos[i].nominalHeight, mem_mg->ctx);
-		infos[i].coefficients = h_infos[i].coefficients;
+		h_infos[i].coefficients = infos[i].coefficients;
+//		h_infos[i].coefficients = (int *)mem_mg->alloc->dev(sizeof(int) * infos[i].nominalWidth * infos[i].nominalHeight, mem_mg->ctx);
+//		infos[i].coefficients = h_infos[i].coefficients;
 
-		cuda_memcpy_htd(infos[i].codeStream, (void *) (d_inbuf + i * maxOutLength), sizeof(byte) * infos[i].length);
-
+//		cuda_memcpy_htd(infos[i].codeStream, (void *) (d_inbuf + i * maxOutLength), sizeof(byte) * infos[i].length);
 		magconOffset += h_infos[i].width * (h_infos[i].stripeNo + 2);
 	}
+	cuda_memcpy_htd(codestreams, d_inbuf, sizeof(byte) * codeBlocks * maxOutLength);
 
 	d_stBuffors = (GPU_JPEG2K::CoefficientState *)mem_mg->alloc->dev(sizeof(GPU_JPEG2K::CoefficientState) * magconOffset, mem_mg->ctx);
 	cudaMemset((void *) d_stBuffors, 0, sizeof(GPU_JPEG2K::CoefficientState) * magconOffset);
@@ -182,6 +185,7 @@ float gpuDecode(EntropyCodingTaskInfo *infos, type_image *img, mem_mg_t *mem_mg,
 
 	GPU_JPEG2K::launch_decode((int) ceil((float) codeBlocks / THREADS), THREADS, d_stBuffors, d_inbuf, maxOutLength, d_infos, codeBlocks);
 
+	cudaDeviceSynchronize();
 //	cudaEventRecord(end, 0);
 
 	mem_mg->dealloc->dev(d_inbuf, mem_mg->ctx);
@@ -268,8 +272,9 @@ void encode_tasks_serial(type_tile *tile) {
 	std::list<type_codeblock *>::iterator ii = cblks.begin();
 
 	int num_tasks = 0;
-	for(; ii != cblks.end(); ++ii)
+	for(; ii != cblks.end(); ++ii) {
 		convert_to_task(tasks[num_tasks++], *(*ii));
+	}
 
 //	printf("%d\n", num_tasks);
 
@@ -355,7 +360,7 @@ void convert_to_decoding_task(EntropyCodingTaskInfo &task, const type_codeblock 
 	task.length = cblk.length;
 	task.significantBits = cblk.significant_bits;
 
-	//task.coefficients = cblk.data_d;
+	task.coefficients = cblk.data_d;
 }
 
 unsigned int reverse(unsigned int in)
@@ -378,33 +383,64 @@ void decode_tile(type_tile *tile)
 
 	mem_mg_t *mem_mg = tile->parent_img->mem_mg;
 	type_image *img = tile->parent_img;
+	type_tile_comp *tile_comp;
+	type_res_lvl *res_lvl;
+	type_subband *sb;
+	int i, j, k, l;
 	std::list<type_codeblock *> cblks;
-	extract_cblks(tile, cblks);
+	for (i = 0; i < img->num_components; i++)
+	{
+		tile_comp = &(tile->tile_comp[i]);
+		for (j = 0; j < tile_comp->num_rlvls; j++)
+		{
+			res_lvl = &(tile_comp->res_lvls[j]);
+			for (k = 0; k < res_lvl->num_subbands; k++)
+			{
+				sb = &(res_lvl->subbands[k]);
+				sb->cblks_data_d = (int32_t *)mem_mg->alloc->dev(sb->num_cblks * tile_comp->cblk_w * tile_comp->cblk_h * sizeof(int32_t), mem_mg->ctx);
+				for (l = 0; l < sb->num_cblks; l++)
+				{
+					type_codeblock *cblk = &(sb->cblks[l]);
+					cblk->data_d = sb->cblks_data_d + cblk->cblk_no * tile_comp->cblk_w * tile_comp->cblk_h;
+					cblks.push_back(&(sb->cblks[l]));
+				}
+			}
+		}
+	}
+
+//	extract_cblks(tile, cblks);
 
 	EntropyCodingTaskInfo *tasks = (EntropyCodingTaskInfo *)mem_mg->alloc->host(sizeof(EntropyCodingTaskInfo) * cblks.size(), mem_mg->ctx);
 
-	std::list<type_codeblock *>::iterator ii = cblks.begin();
-
+	int maxOutLength = /*MAX_CODESTREAM_SIZE*/(1 << img->cblk_exp_w) * (1 << img->cblk_exp_h) * MAX_CODESTREAM_LAYERS;
+	byte *codestreams = (byte *)mem_mg->alloc->host(sizeof(byte) * cblks.size() * maxOutLength, mem_mg->ctx);
 	int num_tasks = 0;
+	std::list<type_codeblock *>::iterator ii = cblks.begin();
 	for(; ii != cblks.end(); ++ii)
 	{
+		cuda_memcpy_hth((*ii)->codestream, (void *) (codestreams + num_tasks * maxOutLength), sizeof(byte) * (*ii)->length);
 		convert_to_decoding_task(tasks[num_tasks++], *(*ii));
 	}
 
 //	printf("%d\n", num_tasks);
 
-	gpuDecode(tasks, img, mem_mg, num_tasks);
+	gpuDecode(img, codestreams, tasks, num_tasks);
 
-	ii = cblks.begin();
+	cudaError_t error;
+	// error report
+	if (error = cudaGetLastError())
+		printf("Error in decode tile %s\n", cudaGetErrorString(error));
 
-	for(int i = 0; i < num_tasks; i++, ++ii)
-	{
-		(*ii)->data_d = tasks[i].coefficients;
-	}
+//	ii = cblks.begin();
+
+//	for(int i = 0; i < num_tasks; i++, ++ii)
+//	{
+//		(*ii)->data_d = tasks[i].coefficients;
+//	}
 
 	mem_mg->dealloc->host(tasks, mem_mg->ctx);
 
 //	stop_measure(INFO);
 
-//	println_end(INFO);
+	println_end(INFO);
 }

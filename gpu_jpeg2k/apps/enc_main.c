@@ -162,6 +162,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	cuda_set_device_flags();
+	cuda_set_device(param->param_device);
 	Config *config = (Config *)malloc(sizeof(Config));
 	init_config(config, param);
 	void **img_data = read_img(img->in_file, config);

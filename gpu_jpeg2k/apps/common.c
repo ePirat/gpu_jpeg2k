@@ -10,17 +10,21 @@
 #include "common.h"
 
 // 512 MB = 536870912
-#define DEV_ALLOC_SIZE 1342177280
-#define HOST_ALLOC_SIZE 104857600
+#define DEV_ALLOC_SIZE 536870912
+#define HOST_ALLOC_SIZE 8*104857600
 
 static void init_dev_mem(mem_t *mem) {
+	printf("Static allocation of %d bytes of GPU memory\n", DEV_ALLOC_SIZE);
 	cuda_d_allocate_mem(&(mem->p), DEV_ALLOC_SIZE);
+	cuda_d_memset(mem->p, 0, DEV_ALLOC_SIZE);
 	mem->size = DEV_ALLOC_SIZE;
 	mem->alloc_size = 0;
 }
 
 static void init_host_mem(mem_t *mem) {
+	printf("Static allocation of %d bytes of CPU memory\n", HOST_ALLOC_SIZE);
 	cuda_h_allocate_mem(&(mem->p), HOST_ALLOC_SIZE);
+	memset(mem->p, 0, HOST_ALLOC_SIZE);
 	mem->size = HOST_ALLOC_SIZE;
 	mem->alloc_size = 0;
 }

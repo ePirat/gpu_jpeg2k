@@ -953,6 +953,7 @@ void launch_encode(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, 
 	MQEncoder *mqstates = (MQEncoder *)mem_mg->alloc->dev(sizeof(MQEncoder) * codeBlocks, mem_mg->ctx);
 
 //	printf("grid %d %d %d\nblock %d %d %d\n", gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z);
+	cudaFuncSetCacheConfig(g_encode, cudaFuncCachePreferL1);
 
 	g_encode<<<gridDim, blockDim>>>(coeffBuffors, cxd_pairs, maxThreadBufforLength, infos, codeBlocks, mqstates, cxds);
 	cudaThreadSynchronize();
@@ -986,6 +987,7 @@ void _launch_encode_pcrd(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuf
 
 void launch_decode(dim3 gridDim, dim3 blockDim, CoefficientState *coeffBuffors, byte *inbuf, int maxThreadBufforLength, CodeBlockAdditionalInfo *infos, int codeBlocks)
 {
+	cudaFuncSetCacheConfig(g_decode, cudaFuncCachePreferL1);
 	g_decode<<<gridDim, blockDim>>>(coeffBuffors, inbuf, maxThreadBufforLength, infos, codeBlocks);
 }
 

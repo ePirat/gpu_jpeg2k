@@ -28,7 +28,7 @@ void tag_tree_reset(type_tag_tree *tree)
 	}
 }
 
-type_tag_tree *tag_tree_create(int num_leafs_h, int num_leafs_v)
+type_tag_tree *tag_tree_create(mem_mg_t *mem_mg, int num_leafs_h, int num_leafs_v)
 {
 	int nplh[32];
 	int nplv[32];
@@ -40,7 +40,7 @@ type_tag_tree *tag_tree_create(int num_leafs_h, int num_leafs_v)
 	int num_lvls;
 	int n;
 
-	tree = (type_tag_tree *) malloc(sizeof(type_tag_tree));
+	tree = (type_tag_tree *) mem_mg->alloc->host(sizeof(type_tag_tree), mem_mg->ctx);
 	if (!tree) {
 		printf("Error!\n");
 		return NULL;
@@ -67,7 +67,7 @@ type_tag_tree *tag_tree_create(int num_leafs_h, int num_leafs_v)
 		return NULL;
 	}
 
-	tree->nodes = (type_tag_tree_node*) calloc(tree->num_nodes, sizeof(type_tag_tree_node));
+	tree->nodes = (type_tag_tree_node*) mem_mg->alloc->host(tree->num_nodes * sizeof(type_tag_tree_node), mem_mg->ctx);
 	if (!tree->nodes) {
 		free(tree);
 		printf("Error!\n");

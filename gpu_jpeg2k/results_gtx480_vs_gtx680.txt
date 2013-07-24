@@ -1,0 +1,29 @@
+artificial.bmp		cuda 4.2	cuda 4.2	cuda 5.0RC
+(old_ebcot)		480		680		680
+fwt53 64x64 mct=1	474-483ms			440-450ms
+fwt53 64x64 mct=0	866-867ms			790-808ms
+
+artificial.ppm
+(old_ebcot)		480		680		680
+fwt53 64x64 mct=1	773-784ms	717-744ms	712-738ms
+fwt53 64x64 mct=0	859-861ms	790-807ms	778-805ms
+fwt53 16x16 mct=1	522-524ms	559-589ms	577-598ms
+fwt53 16x16 mct=0	569-580ms	612-623ms	632-648ms
+(new_ebcot)
+fwt53 64x64 mct=1	393-395ms	538-556ms	543-547ms
+fwt53 64x64 mct=0	448-451ms	604-606ms	611-614ms
+fwt53 16x16 mct=1	212-225ms	293-297ms	297-303ms
+fwt53 16x16 mct=0	233-243ms	333-339ms	337-339ms
+
+big_tree.ppm
+(old_ebcot)		480		680		680
+fwt53 64x64 mct=1	3484-3537ms	4043-4096ms	3876-3911ms
+fwt53 64x64 mct=0	3448-3512ms	4097-4160ms	3903-3957ms
+(new_ebcot)
+fwt53 64x64 mct=1	Out of mem	Out of mem	Out of mem
+fwt53 64x64 mct=0	Out of mem	Out of mem	Out of mem
+
+deer.ppm
+(new_ebcot)
+fwt53 64x64 mct=1	914-922ms	Out of mem	1139-1142ms
+fwt53 64x64 mct=0	900-932ms	Out of mem	1124-1132ms

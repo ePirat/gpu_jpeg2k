@@ -1,0 +1,77 @@
+Name,Start Time(ns),Duration(ns),GridX,GridY,GridZ,BlockX,BlockY,BlockZ,Registers/Thread,Static Shared Memory,Dynamic Shared Memory,Size(bytes),Throughput(bytes/sec)
+"void kernel_mqc_gpu_develop_encode<64u, 1u, double, 8u, (calculate_t)1>(cxd_block*, int, unsigned char*, unsigned char*)",1748333933,60913954,73,1,1,64,1,1,34,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1436605007,9120,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1436648007,9152,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1436691071,9120,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1436733135,9024,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1436776991,11168,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1436933022,11105,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437004831,11232,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437054503,30656,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437118575,31552,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437183559,29600,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437249334,97825,24,16,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437381710,96449,24,16,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437513614,96513,24,16,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437651911,9184,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437694295,8928,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437738039,9120,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437781039,9152,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437822215,11008,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437866151,11040,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437910119,11040,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1437960567,30528,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438028079,30080,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438091247,30880,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438154750,97409,24,16,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438287134,97057,24,16,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438418750,97409,24,16,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438550911,9216,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438602135,8992,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438645167,9024,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438687199,8992,3,2,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438728119,11072,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438771991,11200,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438816023,11136,6,4,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438862247,30912,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438932855,30272,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1438996663,30464,12,8,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1439060358,96801,24,16,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1439191494,97665,24,16,1,16,16,1,17,0,0,,
+"subband_quantization_lossless(float*, int2, int*, int2, int2, int)",1439327958,98177,24,16,1,16,16,1,17,0,0,,
+"rct_kernel(float*, float*, float*, unsigned short, unsigned short, int)",1416382779,1253744,96,64,1,16,16,1,21,0,0,,
+"memset (0)",1191782000,23000,,,,,,,,,,1342177280,58355533913043
+"memset (0)",1439970974,124897,,,,,,,,,,21233664,170009399745
+"memset (0)",1748269836,33664,,,,,,,,,,5073211,150701372385
+"fwt53",1417639179,2845476,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1420929625,1078862,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1422371880,594279,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1423323497,454726,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1423818201,3033126,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1427215897,1137070,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1428712703,611592,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1429688681,458502,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1430259081,3022470,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1433642585,1130542,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1435130559,610632,96,64,1,16,16,1,32,6560,0,,
+"fwt53",1436104177,458758,96,64,1,16,16,1,32,6560,0,,
+"Memcpy HtoD [sync]",1748311884,1152,,,,,,,,,,752,652777777
+"Memcpy HtoD [async]",1264654848,4134837,,,,,,,,,,25165824,6086291672
+"Memcpy HtoD [async]",1329865029,4137429,,,,,,,,,,25165824,6082478756
+"Memcpy HtoD [async]",1396484763,4137622,,,,,,,,,,25165824,6082195038
+"Memcpy HtoD [async]",1440131755,26912,,,,,,,,,,147456,5479191438
+"Memcpy HtoD [async]",1748252492,14944,,,,,,,,,,73728,4933618843
+"Memcpy DtoH [sync]",1748183819,24992,,,,,,,,,,147456,5900128040
+"Memcpy DtoH [sync]",1809300552,802634,,,,,,,,,,5073210,6320701590
+"Memcpy DtoH [sync]",1810116626,13568,,,,,,,,,,73728,5433962264
+"Memcpy DtoD [sync]",1420604661,322308,,,,,,,,,,25165824,78080047656
+"Memcpy DtoD [sync]",1422047652,321572,,,,,,,,,,25165824,78258753871
+"Memcpy DtoD [sync]",1422999557,321316,,,,,,,,,,25165824,78321104457
+"Memcpy DtoD [sync]",1426890869,322404,,,,,,,,,,25165824,78056798302
+"Memcpy DtoD [sync]",1428387451,322628,,,,,,,,,,25165824,78002603617
+"Memcpy DtoD [sync]",1429363493,322564,,,,,,,,,,25165824,78018080132
+"Memcpy DtoD [sync]",1433318133,321828,,,,,,,,,,25165824,78196502479
+"Memcpy DtoD [sync]",1434806267,321668,,,,,,,,,,25165824,78235397987
+"Memcpy DtoD [sync]",1435779341,322180,,,,,,,,,,25165824,78111068346
+"GPU_JPEG2K::g_lengthCalculation(CodeBlockAdditionalInfo*, int, GPU_JPEG2K::MQEncoder*, GPU_JPEG2K::CXD*)",1748121303,5792,9,1,1,512,1,1,8,0,0,,
+"GPU_JPEG2K::g_encode(unsigned int*, unsigned char*, int, CodeBlockAdditionalInfo*, int, GPU_JPEG2K::MQEncoder*, GPU_JPEG2K::CXD*)",1440161899,307862452,144,1,1,32,1,1,63,0,0,,

@@ -715,8 +715,8 @@ void encode_packet_header(type_buffer *buffer, type_res_lvl *res_lvl)
 
 	for (i = 0; i < res_lvl->num_subbands; i++) {
 		sb = &(res_lvl->subbands[i]);
-		sb->inc_tt = tag_tree_create(sb->num_xcblks, sb->num_ycblks);
-		sb->zero_bit_plane_tt = tag_tree_create(sb->num_xcblks, sb->num_ycblks);
+		sb->inc_tt = tag_tree_create(mem_mg, sb->num_xcblks, sb->num_ycblks);
+		sb->zero_bit_plane_tt = tag_tree_create(mem_mg, sb->num_xcblks, sb->num_ycblks);
 		tag_tree_reset(sb->inc_tt);
 		tag_tree_reset(sb->zero_bit_plane_tt);
 		for (j = 0; j < sb->num_cblks; j++) {
@@ -773,16 +773,18 @@ void decode_packet_header(type_buffer *buffer, type_res_lvl *res_lvl)
 	int packet_present;
 	type_tile_comp *tile_comp = res_lvl->parent_tile_comp;
 	type_image *img = tile_comp->parent_tile->parent_img;
+	mem_mg_t *mem_mg = img->mem_mg;
 	type_res_lvl *res_lvl_zero = &(tile_comp->res_lvls[0]);
 	type_packet *packet;
 	type_subband *sb;
 	type_codeblock *cblk;
 	uint32_t marker;
 
+//	long int _start_decode_packet_header = start_measure();
 	for (i = 0; i < res_lvl->num_subbands; i++) {
 		sb = &(res_lvl->subbands[i]);
-		sb->inc_tt = tag_tree_create(sb->num_xcblks, sb->num_ycblks);
-		sb->zero_bit_plane_tt = tag_tree_create(sb->num_xcblks, sb->num_ycblks);
+		sb->inc_tt = tag_tree_create(mem_mg, sb->num_xcblks, sb->num_ycblks);
+		sb->zero_bit_plane_tt = tag_tree_create(mem_mg, sb->num_xcblks, sb->num_ycblks);
 		tag_tree_reset(sb->inc_tt);
 		tag_tree_reset(sb->zero_bit_plane_tt);
 		for (j = 0; j < sb->num_cblks; j++) {
@@ -808,7 +810,9 @@ void decode_packet_header(type_buffer *buffer, type_res_lvl *res_lvl)
 	{
 		println_var(INFO, "Error: Currently empty packets are unsupported");
 	}
+//	printf("_start_decode_packet_header: %d\n", stop_measure(_start_decode_packet_header));
 
+//	long int _end_decode_packet_header = start_measure();
 	for (i = 0; i < res_lvl->num_subbands; i++) {
 		sb = &(res_lvl->subbands[i]);
 		for (j = 0; j < sb->num_cblks; j++) {
@@ -884,6 +888,7 @@ void decode_packet_header(type_buffer *buffer, type_res_lvl *res_lvl)
 			println_var(INFO, "Error: Expected EPH(%x) marker instead of %x", EPH, marker);
 		}
 	}
+//	printf("_end_decode_packet_header: %d\n", stop_measure(_end_decode_packet_header));
 }
 
 //TODO
@@ -937,6 +942,7 @@ void decode_packet_body(type_buffer *buffer, type_res_lvl *res_lvl)
 
 			cblk->codestream = (uint8_t *)mem_mg->alloc->host(cblk->length, mem_mg->ctx);
 			cuda_memcpy_hth(buffer->bp, cblk->codestream, cblk->length);
+//			cblk->codestream = buffer->bp;
 
 //			int z;
 //
@@ -1005,6 +1011,8 @@ void decode_tiles(type_buffer *buffer, type_tile *tile)
 	int res_no;
 	int comp_no;
 
+//	long int _read_buffer = start_measure();
+
 	tile_part_length = read_tile_header(buffer, tile);
 	/* Length of tile part minus SOT, Lsot, Isot, Psot, TPsot, TNsot, SOD */
 	tile_part_length -= 14;
@@ -1016,19 +1024,26 @@ void decode_tiles(type_buffer *buffer, type_tile *tile)
 	{
 		println_var(INFO, "Error: Expected SOD(%x) marker instead of %x", SOD, marker);
 	}
+//	printf("read_buffer: %d\n", stop_measure(_read_buffer));
 
+//	long int _decode_packet_body = start_measure();
 	/* Currently we only support resolution level - layer - component - position progression */
 	/* One precinct for resolution level and one layer for codestream. */
 	for (res_no = 0; res_no < img->num_dlvls + 1; res_no++) {
 		for (comp_no = 0; comp_no < img->num_components; comp_no++) {
 			tile_comp = &(tile->tile_comp[comp_no]);
 			res_lvl = &(tile_comp->res_lvls[res_no]);
+//			long int _decode_packet_header = start_measure();
 			/* Decode packet header */
 			decode_packet_header(buffer, res_lvl);
+//			printf("_decode_packet_header: %d\n", stop_measure(_decode_packet_header));
+//			long int __decode_packet_body = start_measure();
 			/* Decode packet body */
 			decode_packet_body(buffer, res_lvl);
+//			printf("_decode_packet_body: %d\n", stop_measure(__decode_packet_body));
 		}
 	}
+//	printf("decode_packet_body: %d\n", stop_measure(_decode_packet_body));
 
 //	println_var(INFO, "tile_part_length %d", tile_part_length);
 
@@ -1085,15 +1100,21 @@ void decode_codestream(type_buffer *buffer, type_image *img)
 	uint32_t marker;
 	int i;
 
+//	long int _read_main_header = start_measure();
 	read_main_header(buffer, img);
+//	printf("_read_main_header: %d\n", stop_measure(_read_main_header));
 
+//	long int _decode_tiles = start_measure();
 	for (i = 0; i < img->num_tiles; i++) {
 		tile = &(img->tile[i]);
 		decode_tiles(buffer, tile);
 	}
+//	printf("_decode_tiles: %d\n", stop_measure(_decode_tiles));
 
+//	long int _read_buffer = start_measure();
 	/* Read EOC marker */
 	marker = read_buffer(buffer, 2);
+//	printf("_read_buffer: %d\n", stop_measure(_read_buffer));
 
 	if(marker != EOC)
 	{
