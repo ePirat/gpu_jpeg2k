@@ -31,9 +31,14 @@ void init_dec_buffer(FILE *fsrc, type_buffer *src_buff) {
 	long file_length = ftell(fsrc);
 	fseek(fsrc, 0, SEEK_SET);
 
-	src_buff->data = (uint8_t *) malloc(file_length);
+	src_buff->data = (uint8_t *) malloc(file_length + 1);
 	src_buff->size = file_length;
 
+    if (src_buff->data == NULL) {
+        printf("Failed allocating memory");
+        exit(1);
+    }
+    
 	size_t r = fread(src_buff->data, file_length, 1, fsrc);
     if (r != 1) {
         printf("Error reading!\n");
