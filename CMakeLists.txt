@@ -8,7 +8,7 @@ FIND_PACKAGE(FreeImage)
 #SET(CUDA_NVCC_FLAGS -g -G --compiler-options -fpermissive)
 SET(CMAKE_CXX_FLAGS "-O3 -fno-builtin")
 SET(CMAKE_CC_FLAGS "-O3 -fno-builtin")
-SET(CUDA_NVCC_FLAGS -O3 --compiler-options -fpermissive -arch sm_20 --maxrregcount 64 --ptxas-options=-v)
+SET(CUDA_NVCC_FLAGS -O3 --compiler-options -fpermissive -gencode arch=compute_61,code=sm_61 --maxrregcount 64 --ptxas-options=-v)
 #SET(CUDA_NVCC_FLAGS --compiler-options -fpermissive -arch sm_20 --maxrregcount 64 --ptxas-options=-v)
 SET(CUDA_VERBOSE_BUILD ON)
 
