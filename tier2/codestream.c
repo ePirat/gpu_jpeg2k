@@ -241,6 +241,9 @@ void read_cod_marker(type_buffer *buffer, type_image *img)
 	img->cblk_coding_style = read_buffer(buffer, 1);
 	/* Wavelet transform */
 	img->wavelet_type = read_buffer(buffer, 1) == 0 ? DWT_97 : DWT_53;
+    
+    param->param_tile_h = -1U;
+    param->param_tile_w = -1U;
 
 	init_tiles(&img, param);
 	/* TODO: In future read precinct partition */
