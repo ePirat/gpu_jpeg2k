@@ -63,4 +63,8 @@ uint32_t inalign(type_buffer *buffer);
 uint16_t peek_marker(type_buffer *buffer);
 uint8_t read_byte(type_buffer *buffer);
 
+int32_t tell_buffer(type_buffer *buffer);
+void skip_buffer(type_buffer *buffer, int n);
+void seek_buffer(type_buffer *buffer, int pos);
+
 #endif /* BUFFERED_STREAM_H_ */
