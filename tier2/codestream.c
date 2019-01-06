@@ -444,7 +444,9 @@ void read_main_header(type_buffer *buffer, type_image *img)
 	if(marker != SOC)
 	{
 		println_var(INFO, "Error: Expected SOC(%x) marker instead of %x", SOC, marker);
-	}
+	} else {
+        println_var(INFO, "Read SOC(%x) marker of %x", SOC, marker);
+    }
 
 	/* Read SIZ marker */
 	read_siz_marker(buffer, img);

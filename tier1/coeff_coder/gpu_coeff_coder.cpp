@@ -167,6 +167,7 @@ float gpuEncode(EntropyCodingTaskInfo *infos, int count, int targetSize)
 
 float gpuDecode(EntropyCodingTaskInfo *infos, int count)
 {
+    printf("Start gpuDecode\n");
 	int codeBlocks = count;
 	int maxOutLength = MAX_CODESTREAM_SIZE;
 
