@@ -34,6 +34,10 @@ along with GPU JPEG2K. If not, see <http://www.gnu.org/licenses/>.
 #include "../print_info/print_info.h"
 #include "codestream_mct.h"
 
+#include "../types/image.h"
+#include "../types/buffered_stream.h"
+#include "../misc/memory_management.cuh"
+
 /**
  * @brief Writes SIZ marker.
  *
