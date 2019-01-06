@@ -22,7 +22,7 @@ along with GPU JPEG2K. If not, see <http://www.gnu.org/licenses/>.
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
-#define THREADS 32
+#define THREADS 6
 #define MAX_MAG_BITS 20
 
 typedef struct

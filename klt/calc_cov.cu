@@ -31,7 +31,7 @@ extern "C" {
 }
 #include "../misc/cuda_errors.h"
 
-#define MAX_THREADS 128
+#define MAX_THREADS 6
 
 static bool isPow2(unsigned int x)
 {

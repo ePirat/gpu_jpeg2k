@@ -22,7 +22,7 @@ along with GPU JPEG2K. If not, see <http://www.gnu.org/licenses/>.
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
-#define THREADS 32
+#define THREADS 6
 
 #ifdef __CDT_PARSER__
 #define __global__
