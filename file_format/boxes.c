@@ -190,7 +190,7 @@ int h_filetype_box(box *b, type_image *img) {
 	char *br = malloc(5 * sizeof(char));
 	br = strncpy(br, b->dbox, 4);
 
-	if(strcmp(br, "jp2\040")) {
+	if(memcmp(br, "jp2\040", 4)) {
 		println(INFO, "DOSEN'T Conform to IS 15444-1. Exitting");
 		return 1;
 	} else
