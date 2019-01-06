@@ -24,6 +24,9 @@ along with GPU JPEG2K. If not, see <http://www.gnu.org/licenses/>.
  *      Author: miloszc
  */
 
+#include <stdlib.h>
+#include <malloc.h>
+
 #include "buffer.h"
 
 void init_dec_buffer(FILE *fsrc, type_buffer *src_buff) {
