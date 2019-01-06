@@ -34,7 +34,12 @@ void init_dec_buffer(FILE *fsrc, type_buffer *src_buff) {
 	src_buff->data = (uint8_t *) malloc(file_length);
 	src_buff->size = file_length;
 
-	fread(src_buff->data, 1, file_length, fsrc);
+	size_t r = fread(src_buff->data, file_length, 1, fsrc);
+    if (r != 1) {
+        printf("Error reading!\n");
+        exit(1);
+    }
+    
 
 	src_buff->start = src_buff->data;
 	src_buff->end = src_buff->data + src_buff->size;
